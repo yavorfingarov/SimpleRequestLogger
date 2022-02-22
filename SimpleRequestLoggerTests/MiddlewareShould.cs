@@ -5,13 +5,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using SimpleRequestLogger;
 
-namespace SimpleRequestLoggerTests
+namespace SimpleRequestLogger.Tests
 {
     public class MiddlewareShould : MiddlewareTestBase
     {
         [Test]
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("   ")]
         [TestCase("test{}")]
         [TestCase("test{0}")]
         [TestCase("{foo bar}")]
@@ -44,24 +46,6 @@ namespace SimpleRequestLoggerTests
         }
 
         [Test]
-        public void ThrowOnStartup_WhenLogLevelSelectorThrows()
-        {
-            var logLevelSelectorException = new Exception("Test message");
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
-                {
-                    config.LogLevelSelector = (statusCode) => (statusCode == StatusCodes.Status418ImATeapot) ?
-                        throw logLevelSelectorException : LogLevel.Information;
-                });
-            });
-
-            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
-            Assert.AreEqual("Log level selector throws an exception on status code 418.", exception?.Message);
-            Assert.AreSame(logLevelSelectorException, exception?.InnerException);
-        }
-
-        [Test]
         [TestCase("{Foo}", "Foo")]
         [TestCase("Test {Bar} {Baz}", "Bar")]
         public void ThrowOnStartup_WhenMessageTemplateContainsInvalidPropertyName(string messageTemplate,
@@ -81,9 +65,58 @@ namespace SimpleRequestLoggerTests
         }
 
         [Test]
+        public void ThrowOnStartup_WhenLogLevelSelectorIsNull()
+        {
+            var logLevelSelectorException = new Exception("Test message");
+            Action prepare = () => PrepareTestServer("", app =>
+            {
+                app.UseSimpleRequestLogging(config =>
+                {
+                    config.LogLevelSelector = null!;
+                });
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
+            Assert.AreEqual("Log level selector cannot be null.", exception?.Message);
+        }
+
+        [Test]
+        public void ThrowOnStartup_WhenLogLevelSelectorThrows()
+        {
+            var logLevelSelectorException = new Exception("Test message");
+            Action prepare = () => PrepareTestServer("", app =>
+            {
+                app.UseSimpleRequestLogging(config =>
+                {
+                    config.LogLevelSelector = (statusCode) => (statusCode == StatusCodes.Status418ImATeapot) ?
+                        throw logLevelSelectorException : LogLevel.Information;
+                });
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
+            Assert.AreEqual("Log level selector throws an exception on status code 418.", exception?.Message);
+            Assert.AreSame(logLevelSelectorException, exception?.InnerException);
+        }
+
+        [Test]
         [TestCase(null)]
         [TestCase("")]
         [TestCase("   ")]
+        public void ThrowOnStartup_WhenIgnorePathIsNullOrEmpty(string path)
+        {
+            Action prepare = () => PrepareTestServer("", app =>
+            {
+                app.UseSimpleRequestLogging(config =>
+                {
+                    config.IgnorePath(path);
+                });
+            });
+
+            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
+            Assert.AreEqual($"Ignore path cannot be null or empty.", exception?.Message);
+        }
+
+        [Test]
         [TestCase("test")]
         [TestCase("{foo")]
         [TestCase("foo}")]
@@ -132,13 +165,13 @@ namespace SimpleRequestLoggerTests
             await Client.GetAsync("/problem");
 
             Assert.AreEqual(7, Logs.Count);
-            StringAssert.IsMatch(@"^\[INFO\] GET \/ responded 200 in [0-9]+(\.[0-9]+) ms$", Logs[0]);
-            StringAssert.IsMatch(@"^\[INFO\] POST \/ responded 204 in [0-9]+(\.[0-9]+) ms$", Logs[1]);
-            StringAssert.IsMatch(@"^\[INFO\] GET \/bad-request responded 400 in [0-9]+(\.[0-9]+) ms$", Logs[2]);
-            StringAssert.IsMatch(@"^\[INFO\] GET \/auth responded 401 in [0-9]+(\.[0-9]+) ms$", Logs[3]);
-            StringAssert.IsMatch(@"^\[INFO\] GET \/not-found\?q=foo\%20bar responded 404 in [0-9]+(\.[0-9]+) ms$", Logs[4]);
-            StringAssert.IsMatch(@"^\[INFO\] PATCH \/auth responded 405 in [0-9]+(\.[0-9]+) ms$", Logs[5]);
-            StringAssert.IsMatch(@"^\[INFO\] GET \/problem responded 500 in [0-9]+(\.[0-9]+) ms$", Logs[6]);
+            StringAssert.IsMatch(@"^\[INFO\] GET \/ responded 200 in [0-9]+ ms\.$", Logs[0]);
+            StringAssert.IsMatch(@"^\[INFO\] POST \/ responded 204 in [0-9]+ ms\.$", Logs[1]);
+            StringAssert.IsMatch(@"^\[INFO\] GET \/bad-request responded 400 in [0-9]+ ms\.$", Logs[2]);
+            StringAssert.IsMatch(@"^\[INFO\] GET \/auth responded 401 in [0-9]+ ms\.$", Logs[3]);
+            StringAssert.IsMatch(@"^\[INFO\] GET \/not-found\?q=foo\%20bar responded 404 in [0-9]+ ms\.$", Logs[4]);
+            StringAssert.IsMatch(@"^\[INFO\] PATCH \/auth responded 405 in [0-9]+ ms\.$", Logs[5]);
+            StringAssert.IsMatch(@"^\[INFO\] GET \/problem responded 500 in [0-9]+ ms\.$", Logs[6]);
         }
 
         [Test]
@@ -236,9 +269,9 @@ namespace SimpleRequestLoggerTests
                     {
                         await next(context);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        caughtException = e;
+                        caughtException = ex;
                     }
                 });
                 app.UseSimpleRequestLogging();
@@ -251,8 +284,69 @@ namespace SimpleRequestLoggerTests
 
             await Client.GetAsync("/");
 
-            StringAssert.IsMatch(@"^\[INFO\] GET \/ responded 500 in [0-9]+(\.[0-9]+) ms$", Logs.Single());
+            StringAssert.IsMatch(@"^\[INFO\] GET \/ responded 500 in [0-9]+ ms\.$", Logs.Single());
             Assert.AreSame(exception, caughtException);
+        }
+
+        [Test]
+        public async Task NotLogIgnoredPaths()
+        {
+            PrepareTestServer("${message}", app =>
+            {
+                app.UseSimpleRequestLogging(config =>
+                {
+                    config.MessageTemplate = "{Path}";
+                    config.IgnorePath("/ignore");
+                    config.IgnorePath("*/ignore-wildcard-start");
+                    config.IgnorePath("/ignore-wildcard-end*");
+                    config.IgnorePath("*/ignore-wildcard-both-start-and-end*");
+                    config.IgnorePath("/ignore-wildcard*middle");
+                });
+                app.UseRouting();
+                app.UseEndpoints(config =>
+                {
+                    config.MapGet("/", () => Results.Ok());
+                });
+            });
+
+            await Client.GetAsync("/");
+            await Client.GetAsync("/ignore");
+            await Client.GetAsync("/log/ignore");
+            await Client.GetAsync("/ignore/log");
+            await Client.GetAsync("/log/ignore/log");
+            await Client.GetAsync("/ignore-wildcard-start");
+            await Client.GetAsync("/log/ignore-wildcard-start");
+            await Client.GetAsync("/ignore-wildcard-start/log");
+            await Client.GetAsync("/log/ignore-wildcard-start/log");
+            await Client.GetAsync("/ignore-wildcard-end");
+            await Client.GetAsync("/log/ignore-wildcard-end");
+            await Client.GetAsync("/ignore-wildcard-end/log");
+            await Client.GetAsync("/log/ignore-wildcard-end/log");
+            await Client.GetAsync("/ignore-wildcard-both-start-and-end");
+            await Client.GetAsync("/log/ignore-wildcard-both-start-and-end");
+            await Client.GetAsync("/ignore-wildcard-both-start-and-end/log");
+            await Client.GetAsync("/log/ignore-wildcard-both-start-and-end/log");
+            await Client.GetAsync("/ignore-wildcard/log/middle");
+            await Client.GetAsync("/ignore-wildcard/log/middle/log");
+            await Client.GetAsync("/log/ignore-wildcard/log/middle");
+            await Client.GetAsync("/log/ignore-wildcard/log/middle/log");
+            await Client.GetAsync("/ignore-wildcardmiddle");
+
+            var expectedPaths = new[]
+            {
+                "/",
+                "/log/ignore",
+                "/ignore/log",
+                "/log/ignore/log",
+                "/ignore-wildcard-start/log",
+                "/log/ignore-wildcard-start/log",
+                "/log/ignore-wildcard-end",
+                "/log/ignore-wildcard-end/log",
+                "/ignore-wildcard/log/middle/log",
+                "/log/ignore-wildcard/log/middle",
+                "/log/ignore-wildcard/log/middle/log"
+            };
+            CollectionAssert.AreEqual(expectedPaths, Logs);
         }
     }
 }
