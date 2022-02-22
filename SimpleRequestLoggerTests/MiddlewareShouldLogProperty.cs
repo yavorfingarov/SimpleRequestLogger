@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using NUnit.Framework;
-using SimpleRequestLogger;
 
-namespace SimpleRequestLoggerTests
+namespace SimpleRequestLogger.Tests
 {
     public class MiddlewareShouldLogProperty : MiddlewareTestBase
     {

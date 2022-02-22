@@ -1,22 +1,22 @@
 # SimpleRequestLogger
 
-This package provides a small and customizable ASP.NET Core middleware for structured logging of requests using `Microsoft.Extensions.Logging`. The built-in request logging is a bit noisy and emits multiple events per request. With this middleware you can fit all the information you need in a single log entry:
+This package provides a small and customizable ASP.NET Core middleware for structured logging of requests using `Microsoft.Extensions.Logging`. The built-in request logging is a bit noisy and emits multiple events per request. With `SimpleRequestLogger` you can fit all the information you need in a single log entry:
 
 ```
 // Plaintext
-[21:51:46.5705 INFO] GET / responded 200 in 1.210 ms
+[21:51:46.5705 INFO] GET / responded 200 in 31 ms.
 
 // JSON
 {
     "Time": "21:51:46.5705",
     "Level": "INFO",
-    "Message": "GET \/ responded 200 in 1.210 ms",
+    "Message": "GET \/ responded 200 in 31 ms.",
     "Properties": {
         "Method": "GET",
         "Path": "\/",
         "QueryString": "",
         "StatusCode": 200,
-        "ElapsedMs": 1.210
+        "ElapsedMs": 31
     }
 }
 ```
@@ -39,7 +39,7 @@ The only thing you should do is simply add the middleware to the request pipelin
 
 ### Default configuration
 
-By default, all requests would be logged at the information log level with the message template `"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms"`. To use the middleware you should only add a single line:
+By default, `SimpleRequestLogger` logs all requests at information log level with message template `"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms."`. To use the middleware you should only add a single line:
 
 ```csharp
 app.UseSimpleRequestLogging();
@@ -47,14 +47,16 @@ app.UseSimpleRequestLogging();
 
 ### Custom configuration
 
-It is possible to customize the message template and/or change the log level based on status code.
+It is possible to customize the message template, to change the log level based on status code and to disable logging for specific paths.
 
 ```csharp
 app.UseSimpleRequestLogging(config =>
 {
     config.MessageTemplate = "{Scheme} {Method} {Path} => {StatusCode}";
-    config.LogLevelSelector = (statusCode) => (statusCode < 400) ? 
-        LogLevel.Information : LogLevel.Error;
+    config.LogLevelSelector = (statusCode) => 
+        (statusCode < 400) ? LogLevel.Information : LogLevel.Error;
+    config.IgnorePath("/health");
+    config.IgnorePath("/static/*");
 });
 ```
 
@@ -71,14 +73,27 @@ app.UseSimpleRequestLogging(config =>
 
 ### Pipeline placement
 
-You might want to consider placing `SimpleRequestLogger` after request-heavy middlewares like `UseStaticFiles()` if those requests are not interesting for you.
+You might want to consider placing `SimpleRequestLogger` after request-heavy middlewares like `UseStaticFiles()` if those requests are not interesting for you (alternatively, you might ignore those via the configuration).
 
-If `SimpleRequestLogger` catches an exception, the request will be logged with a status code 500 and the exception will be rethrown. If you have an error handling middleware that alters the status code based on exception type, you should consider adding `SimpleRequestLogger` before it. 
+If `SimpleRequestLogger` catches an exception, the request will be logged with a status code 500 and the exception will be rethrown. If you have an error handling middleware that alters the response status code based on exception type, you should consider adding `SimpleRequestLogger` before it. 
 
 ### Exceptions
 
-In normal circumstances, `SimpleRequestLogger` should not throw exceptions. 
+In normal circumstances, `SimpleRequestLogger` should not throw exceptions when handling requests. 
 
-On startup, when the middleware is instantiated, the configuration is verified. `MessageTemplate` is checked for validity. Additionally, it is also ensured that `LogLevelSelector` delegate will not throw for the standard response status codes. 
+On startup, when the middleware is instantiated, the configuration is verified. `MessageTemplate` and the ignored paths are checked for validity. Additionally, it is also ensured that `LogLevelSelector` delegate will not throw for the standard response status codes. In case of a problem with the configuration, an `InvalidOperationException` is thrown.
 
-In case of a problem with the configuration, an `InvalidOperationException` is thrown.
+## Performance
+
+`SimpleRequestLogger` adds a negligible performance overhead to every request. 
+
+### Benchmarks
+
+The scenarios are run on a test host with a single hello-world-endpoint.
+
+|                           Method |     Mean |    Error |   StdDev | Ratio | RatioSD |  Gen 0 | Allocated |
+|--------------------------------- |---------:|---------:|---------:|------:|--------:|-------:|----------:|
+| NoSimpleRequestLoggingMiddleware | 19.88 us | 0.395 us | 0.671 us |  0.96 |    0.07 | 2.7771 |      8 KB |
+|                    DefaultConfig | 20.69 us | 0.453 us | 1.293 us |  1.00 |    0.00 | 2.9297 |      9 KB |
+|     CustomConfigWith1IgnoredPath | 21.47 us | 0.469 us | 1.339 us |  1.04 |    0.10 | 2.9297 |      9 KB |
+|   CustomConfigWith10IgnoredPaths | 23.71 us | 0.472 us | 1.252 us |  1.15 |    0.10 | 2.9297 |      9 KB |

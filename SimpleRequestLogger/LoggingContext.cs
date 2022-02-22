@@ -10,9 +10,9 @@ namespace SimpleRequestLogger
 
         private readonly int _StatusCode;
 
-        private readonly double _ElapsedMs;
+        private readonly int _ElapsedMs;
 
-        internal LoggingContext(HttpContext? httpContext, int statusCode, double elapsedMs)
+        internal LoggingContext(HttpContext? httpContext, int statusCode, int elapsedMs)
         {
             _HttpContext = httpContext;
             _StatusCode = statusCode;

@@ -12,7 +12,7 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using NUnit.Framework;
 
-namespace SimpleRequestLoggerTests
+namespace SimpleRequestLogger.Tests
 {
     public abstract class MiddlewareTestBase
     {
