@@ -51,7 +51,7 @@ namespace SimpleRequestLogger
 
         private void SetMessageTemplate(string messageTemplate)
         {
-            if (string.IsNullOrWhiteSpace(messageTemplate) || 
+            if (string.IsNullOrWhiteSpace(messageTemplate) ||
                 Regex.IsMatch(messageTemplate, @"(\{[^\}]*\{)|(\}[^\{]*\})|((?<=\{)[a-zA-Z]*[^a-zA-Z\{\}]+[a-zA-Z]*(?=\}))|(\{\})"))
             {
                 throw new InvalidOperationException("Message template is invalid.");
