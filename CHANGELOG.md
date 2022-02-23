@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2022-02-23
+### Fixed
+- Benchmark inaccuracies
+- Minor documentation problems
+
 ## [1.1.0] - 2022-02-22
 ### Added
 - Ability to ignore specific paths

@@ -13,11 +13,11 @@ namespace SimpleRequestLogger.Benchmarks
     {
         private const string _Endpoint = "/endpoint";
 
-        private readonly HttpClient _NoSimpleRequestLoggingMiddlewareClient = GetTestClient();
+        private readonly HttpClient _NoSimpleRequestLoggerClient = GetTestClient();
 
         private readonly HttpClient _DefaultConfigClient = GetTestClient(app => app.UseSimpleRequestLogging());
 
-        private readonly HttpClient _CustomConfigWith1IgnoredPathClient = GetTestClient(app =>
+        private readonly HttpClient _CustomConfigOneIgnoredPathClient = GetTestClient(app =>
         {
             app.UseSimpleRequestLogging(config =>
             {
@@ -25,11 +25,11 @@ namespace SimpleRequestLogger.Benchmarks
             });
         });
 
-        private readonly HttpClient _CustomConfigWith10IgnoredPathsClient = GetTestClient(app =>
+        private readonly HttpClient _CustomConfigFiveIgnoredPathsClient = GetTestClient(app =>
         {
             app.UseSimpleRequestLogging(config =>
             {
-                for (var i = 0; i < 10; i++)
+                for (var i = 0; i < 5; i++)
                 {
                     config.IgnorePath($"/ignore{i}/*");
                 }
@@ -37,27 +37,27 @@ namespace SimpleRequestLogger.Benchmarks
         });
 
         [Benchmark]
-        public async Task NoSimpleRequestLoggingMiddleware()
+        public async Task<HttpResponseMessage> NoSimpleRequestLogger()
         {
-            await _NoSimpleRequestLoggingMiddlewareClient.GetAsync(_Endpoint);
-        }
-
-        [Benchmark(Baseline = true)]
-        public async Task DefaultConfig()
-        {
-            await _DefaultConfigClient.GetAsync(_Endpoint);
+            return await _NoSimpleRequestLoggerClient.GetAsync(_Endpoint);
         }
 
         [Benchmark]
-        public async Task CustomConfigWith1IgnoredPath()
+        public async Task<HttpResponseMessage> DefaultConfig()
         {
-            await _CustomConfigWith1IgnoredPathClient.GetAsync(_Endpoint);
+            return await _DefaultConfigClient.GetAsync(_Endpoint);
         }
 
         [Benchmark]
-        public async Task CustomConfigWith10IgnoredPaths()
+        public async Task<HttpResponseMessage> CustomConfigOneIgnoredPath()
         {
-            await _CustomConfigWith10IgnoredPathsClient.GetAsync(_Endpoint);
+            return await _CustomConfigOneIgnoredPathClient.GetAsync(_Endpoint);
+        }
+
+        [Benchmark]
+        public async Task<HttpResponseMessage> CustomConfigFiveIgnoredPaths()
+        {
+            return await _CustomConfigFiveIgnoredPathsClient.GetAsync(_Endpoint);
         }
 
         private static HttpClient GetTestClient(Action<IApplicationBuilder>? configure = null)
@@ -66,18 +66,9 @@ namespace SimpleRequestLogger.Benchmarks
                 .ConfigureWebHost(webHostBuilder =>
                 {
                     webHostBuilder.UseTestServer();
-                    webHostBuilder.ConfigureServices(services =>
-                    {
-                        services.AddRouting();
-                    });
                     webHostBuilder.Configure(app =>
                     {
                         configure?.Invoke(app);
-                        app.UseRouting();
-                        app.UseEndpoints(config =>
-                        {
-                            config.MapGet(_Endpoint, () => "Hello, world!");
-                        });
                     });
                 })
                 .Start()
