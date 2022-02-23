@@ -13,7 +13,9 @@ namespace SimpleRequestLogger
     public class LoggerConfiguration
     {
         /// <summary>
-        /// Sets the log message template. 
+        /// Sets the log message template. The available properties are 
+        /// <c>Method</c>, <c>Path</c>, <c>QueryString</c>, <c>Protocol</c>, 
+        /// <c>Scheme</c>, <c>UserAgent</c>, <c>StatusCode</c> and <c>ElapsedMs</c>.
         /// </summary>
         /// <remarks>The default value is <c>"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms."</c>.</remarks>
         public string MessageTemplate { internal get => _MessageTemplate; set => SetMessageTemplate(value); }

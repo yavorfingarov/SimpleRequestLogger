@@ -89,11 +89,11 @@ On startup, when the middleware is instantiated, the configuration is verified. 
 
 ### Benchmarks
 
-The scenarios are run on a test host with a single hello-world-endpoint.
+The scenarios are run on a test host without other middleware.
 
-|                           Method |     Mean |    Error |   StdDev | Ratio | RatioSD |  Gen 0 | Allocated |
-|--------------------------------- |---------:|---------:|---------:|------:|--------:|-------:|----------:|
-| NoSimpleRequestLoggingMiddleware | 19.88 us | 0.395 us | 0.671 us |  0.96 |    0.07 | 2.7771 |      8 KB |
-|                    DefaultConfig | 20.69 us | 0.453 us | 1.293 us |  1.00 |    0.00 | 2.9297 |      9 KB |
-|     CustomConfigWith1IgnoredPath | 21.47 us | 0.469 us | 1.339 us |  1.04 |    0.10 | 2.9297 |      9 KB |
-|   CustomConfigWith10IgnoredPaths | 23.71 us | 0.472 us | 1.252 us |  1.15 |    0.10 | 2.9297 |      9 KB |
+|                       Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
+|----------------------------- |---------:|---------:|---------:|-------:|----------:|
+|        NoSimpleRequestLogger | 12.56 μs | 0.246 μs | 0.241 μs | 2.3804 |      7 KB |
+|                DefaultConfig | 15.42 μs | 0.305 μs | 0.656 μs | 2.5330 |      8 KB |
+|   CustomConfigOneIgnoredPath | 16.08 μs | 0.315 μs | 0.576 μs | 2.5330 |      8 KB |
+| CustomConfigFiveIgnoredPaths | 20.75 μs | 0.453 μs | 1.320 μs | 2.5330 |      8 KB |
