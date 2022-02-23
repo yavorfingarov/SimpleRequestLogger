@@ -16,10 +16,10 @@ jobs:
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore SimpleRequestLogger
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --no-restore --configuration Release SimpleRequestLogger
       - name: Create package
-        run: dotnet pack --no-build --configuration Release
+        run: dotnet pack --no-build --configuration Release SimpleRequestLogger
       - name: Publish to NuGet Gallery
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
