@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.2] - 2022-02-24
+### Fixed
+- Skip duplicate ignore paths
+
 ## [1.1.1] - 2022-02-23
 ### Fixed
 - Benchmark inaccuracies

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32002.185
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleRequestLogger", "SimpleRequestLogger\SimpleRequestLogger.csproj", "{14630A8D-982D-496F-A173-69A651A4CC2F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleRequestLogger.Tests", "SimpleRequestLoggerTests\SimpleRequestLogger.Tests.csproj", "{9B9BC845-039D-441E-91A2-DE16091D904E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleRequestLogger.Tests", "SimpleRequestLogger.Tests\SimpleRequestLogger.Tests.csproj", "{9B9BC845-039D-441E-91A2-DE16091D904E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleRequestLogger.Benchmarks", "SimpleRequestLogger.Benchmarks\SimpleRequestLogger.Benchmarks.csproj", "{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}"
 EndProject
