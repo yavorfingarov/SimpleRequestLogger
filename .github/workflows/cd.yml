@@ -16,10 +16,10 @@ jobs:
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
-        run: dotnet restore SimpleRequestLogger
+        run: dotnet restore ${{ github.event.repository.name }}
       - name: Build
-        run: dotnet build --no-restore --configuration Release SimpleRequestLogger
+        run: dotnet build --no-restore --configuration Release ${{ github.event.repository.name }}
       - name: Create package
-        run: dotnet pack --no-build --configuration Release SimpleRequestLogger
+        run: dotnet pack --no-build --configuration Release ${{ github.event.repository.name }}
       - name: Publish to NuGet Gallery
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}

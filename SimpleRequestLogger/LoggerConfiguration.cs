@@ -48,7 +48,11 @@ namespace SimpleRequestLogger
             {
                 throw new InvalidOperationException("Ignore path cannot be null or empty.");
             }
-            _IgnorePathPatterns.Add($"^{Regex.Escape(path).Replace("\\*", ".*")}$");
+            var pathPattern = $"^{Regex.Escape(path).Replace("\\*", ".*")}$";
+            if (!_IgnorePathPatterns.Contains(pathPattern))
+            {
+                _IgnorePathPatterns.Add(pathPattern);
+            }
         }
 
         private void SetMessageTemplate(string messageTemplate)
