@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.3] - 2022-03-08
+### Fixed
+- Minor performance optimization
+
 ## [1.1.2] - 2022-02-24
 ### Fixed
 - Skip duplicate ignore paths
