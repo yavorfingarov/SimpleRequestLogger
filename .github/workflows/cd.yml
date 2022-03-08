@@ -3,6 +3,7 @@ name: CD
 on:
   push:
     branches: [ master ]
+    paths: [ 'SimpleRequestLogger/**' ]
 
 jobs:
   publish:
@@ -10,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
-        run: dotnet restore ${{ github.event.repository.name }}
+        run: dotnet restore SimpleRequestLogger
       - name: Build
-        run: dotnet build --no-restore --configuration Release ${{ github.event.repository.name }}
+        run: dotnet build --no-restore --configuration Release SimpleRequestLogger
       - name: Create package
-        run: dotnet pack --no-build --configuration Release ${{ github.event.repository.name }}
+        run: dotnet pack --no-build --configuration Release SimpleRequestLogger
       - name: Publish to NuGet Gallery
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}

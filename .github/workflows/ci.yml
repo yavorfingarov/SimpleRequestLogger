@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 6.0.x
       - name: Restore dependencies
@@ -22,5 +22,5 @@ jobs:
       - name: Run tests
         run: dotnet test --no-build --verbosity normal
       # TODO Uncomment once https://github.com/dotnet/format/issues/1519 is fixed.
-      # - name: Check style
-      #   run: dotnet format --no-restore --verify-no-changes --severity info
+      - name: Check style
+        run: dotnet format --no-restore --verify-no-changes --severity info
