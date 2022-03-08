@@ -93,7 +93,7 @@ The scenarios are run on a test host without other middleware.
 
 |                       Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
 |----------------------------- |---------:|---------:|---------:|-------:|----------:|
-|        NoSimpleRequestLogger | 12.56 μs | 0.246 μs | 0.241 μs | 2.3804 |      7 KB |
-|                DefaultConfig | 15.42 μs | 0.305 μs | 0.656 μs | 2.5330 |      8 KB |
-|   CustomConfigOneIgnoredPath | 16.08 μs | 0.315 μs | 0.576 μs | 2.5330 |      8 KB |
-| CustomConfigFiveIgnoredPaths | 20.75 μs | 0.453 μs | 1.320 μs | 2.5330 |      8 KB |
+|        NoSimpleRequestLogger | 12.01 μs | 0.197 μs | 0.175 μs | 2.3804 |      7 KB |
+|                DefaultConfig | 15.93 μs | 0.317 μs | 0.530 μs | 2.5024 |      8 KB |
+|   CustomConfigOneIgnoredPath | 16.46 μs | 0.309 μs | 0.624 μs | 2.5024 |      8 KB |
+| CustomConfigFiveIgnoredPaths | 20.09 μs | 0.389 μs | 0.558 μs | 2.5330 |      8 KB |

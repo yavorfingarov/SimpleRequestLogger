@@ -10,7 +10,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/yavorfingarov/SimpleRequestLogger</PackageProjectUrl>
     <PackageTags>logging; logger; structured; semantic; request; response; middleware; diagnostics; aspnetcore; microsoft.extensions.logging</PackageTags>
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A simple and customizable ASP.NET Core middleware for structured logging of requests using Microsoft.Extensions.Logging.</Description>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

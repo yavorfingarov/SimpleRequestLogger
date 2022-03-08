@@ -28,7 +28,7 @@ namespace SimpleRequestLogger
             _PropertyNames = Regex.Matches(_Configuration.MessageTemplate, @"((?<=\{)[a-zA-Z]+(?=\}))")
                 .Select(m => m.Value)
                 .ToList();
-            _ = MapProperties(new LoggingContext(default, default, default));
+            _ = MapProperties(new LoggingContext());
         }
 
         public async Task InvokeAsync(HttpContext httpContext)

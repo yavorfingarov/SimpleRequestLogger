@@ -4,7 +4,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace SimpleRequestLogger
 {
-    internal class LoggingContext
+    internal struct LoggingContext
     {
         private readonly HttpContext? _HttpContext;
 
@@ -12,7 +12,7 @@ namespace SimpleRequestLogger
 
         private readonly int _ElapsedMs;
 
-        internal LoggingContext(HttpContext? httpContext, int statusCode, int elapsedMs)
+        internal LoggingContext(HttpContext httpContext, int statusCode, int elapsedMs)
         {
             _HttpContext = httpContext;
             _StatusCode = statusCode;
