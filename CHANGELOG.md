@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.4] - 2022-03-22
+### Changed
+- Dependant packages update
+
 ## [1.1.3] - 2022-03-08
 ### Fixed
 - Minor performance optimization
