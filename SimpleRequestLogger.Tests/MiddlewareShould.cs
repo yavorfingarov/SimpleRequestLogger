@@ -33,13 +33,19 @@ namespace SimpleRequestLogger.Tests
         [TestCase("{Scheme} {Method} {Path} => {0}")]
         public void ThrowOnStartup_WhenMessageTemplateIsInvalid(string messageTemplate)
         {
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            Action prepare = () => PrepareTestServer(
+                "",
+                new
                 {
-                    config.MessageTemplate = messageTemplate;
+                    RequestLogging = new
+                    {
+                        MessageTemplate = messageTemplate
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
                 });
-            });
 
             var exception = Assert.Throws<InvalidOperationException>(() => prepare());
             Assert.AreEqual($"Message template is invalid.", exception?.Message);
@@ -51,13 +57,19 @@ namespace SimpleRequestLogger.Tests
         public void ThrowOnStartup_WhenMessageTemplateContainsInvalidPropertyName(string messageTemplate,
             string expectedPropertyName)
         {
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            Action prepare = () => PrepareTestServer(
+                "",
+                new
                 {
-                    config.MessageTemplate = messageTemplate;
+                    RequestLogging = new
+                    {
+                        MessageTemplate = messageTemplate
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
                 });
-            });
 
             var exception = Assert.Throws<InvalidOperationException>(() => prepare());
             Assert.AreEqual($"Encountered an unexpected property '{expectedPropertyName}'.",
@@ -65,33 +77,17 @@ namespace SimpleRequestLogger.Tests
         }
 
         [Test]
-        public void ThrowOnStartup_WhenLogLevelSelectorIsNull()
-        {
-            var logLevelSelectorException = new Exception("Test message");
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
-                {
-                    config.LogLevelSelector = null!;
-                });
-            });
-
-            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
-            Assert.AreEqual("Log level selector cannot be null.", exception?.Message);
-        }
-
-        [Test]
         public void ThrowOnStartup_WhenLogLevelSelectorThrows()
         {
             var logLevelSelectorException = new Exception("Test message");
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            Action prepare = () => PrepareTestServer(
+                "",
+                null,
+                app =>
                 {
-                    config.LogLevelSelector = (statusCode) => (statusCode == StatusCodes.Status418ImATeapot) ?
-                        throw logLevelSelectorException : LogLevel.Information;
+                    app.UseRequestLogging(logLevelSelector: (statusCode) => (statusCode == StatusCodes.Status418ImATeapot) ?
+                        throw logLevelSelectorException : LogLevel.Information);
                 });
-            });
 
             var exception = Assert.Throws<InvalidOperationException>(() => prepare());
             Assert.AreEqual("Log level selector throws an exception on status code 418.", exception?.Message);
@@ -104,16 +100,49 @@ namespace SimpleRequestLogger.Tests
         [TestCase("   ")]
         public void ThrowOnStartup_WhenIgnorePathIsNullOrEmpty(string path)
         {
-            Action prepare = () => PrepareTestServer("", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            Action prepare = () => PrepareTestServer(
+                "",
+                new
                 {
-                    config.IgnorePath(path);
+                    RequestLogging = new
+                    {
+                        IgnorePaths = new[] { path }
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
                 });
-            });
 
             var exception = Assert.Throws<InvalidOperationException>(() => prepare());
             Assert.AreEqual($"Ignore path cannot be null or empty.", exception?.Message);
+        }
+
+        [Test]
+        [TestCase("{Foo}", "Foo")]
+        [TestCase("Test {Bar} {Baz}", "Bar")]
+        [TestCase("Test {Header} {Baz}", "Header")]
+        [TestCase("Test {Claim} {Baz}", "Claim")]
+        public void ThrowWhenMessageTemplateContainsInvalidPropertyName(string messageTemplate,
+            string expectedPropertyName)
+        {
+            Action prepare = () => PrepareTestServer(
+                "${message}",
+                new
+                {
+                    RequestLogging = new
+                    {
+                        MessageTemplate = messageTemplate
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
+                });
+
+            var exception = Assert.Throws<InvalidOperationException>(() => prepare());
+            Assert.AreEqual($"Encountered an unexpected property '{expectedPropertyName}'.",
+                exception?.Message);
         }
 
         [Test]
@@ -126,35 +155,44 @@ namespace SimpleRequestLogger.Tests
         [TestCase("foo} test")]
         public async Task LogWhenTemplateHasNoProperties(string messageTemplate)
         {
-            PrepareTestServer("${message}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}",
+                new
                 {
-                    config.MessageTemplate = messageTemplate;
+                    RequestLogging = new
+                    {
+                        MessageTemplate = messageTemplate
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
                 });
-            });
 
             await Client.GetAsync("/");
 
-            Assert.AreEqual(messageTemplate ?? "", Logs.Single());
+            Assert.AreEqual(messageTemplate, Logs.Single());
         }
 
         [Test]
         public async Task LogWithDefaultTemplate()
         {
-            PrepareTestServer("[${level:uppercase=true}] ${message}", app =>
-            {
-                app.UseSimpleRequestLogging();
-                app.UseRouting();
-                app.UseEndpoints(config =>
+            PrepareTestServer(
+                "[${level:uppercase=true}] ${message}",
+                null,
+                app =>
                 {
-                    config.MapGet("/", () => Results.Ok());
-                    config.MapPost("/", () => Results.NoContent());
-                    config.MapGet("/bad-request", () => Results.BadRequest());
-                    config.MapGet("/auth", () => Results.Unauthorized());
-                    config.MapGet("/problem", () => Results.Problem());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () => Results.Ok());
+                        config.MapPost("/", () => Results.NoContent());
+                        config.MapGet("/bad-request", () => Results.BadRequest());
+                        config.MapGet("/auth", () => Results.Unauthorized());
+                        config.MapGet("/problem", () => Results.Problem());
+                    });
                 });
-            });
 
             await Client.GetAsync("/");
             await Client.PostAsync("/", null);
@@ -177,22 +215,28 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task LogWithValidCustomMessageTemplate()
         {
-            PrepareTestServer("[${level:uppercase=true}] ${message}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "[${level:uppercase=true}] ${message}",
+                new
                 {
-                    config.MessageTemplate = "{Scheme} {Method} {Path} => {StatusCode}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Scheme} {Method} {Path} => {StatusCode}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/", () => Results.Ok());
-                    config.MapPost("/", () => Results.NoContent());
-                    config.MapGet("/bad-request", () => Results.BadRequest());
-                    config.MapGet("/auth", () => Results.Unauthorized());
-                    config.MapGet("/problem", () => Results.Problem());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () => Results.Ok());
+                        config.MapPost("/", () => Results.NoContent());
+                        config.MapGet("/bad-request", () => Results.BadRequest());
+                        config.MapGet("/auth", () => Results.Unauthorized());
+                        config.MapGet("/problem", () => Results.Problem());
+                    });
                 });
-            });
 
             await Client.GetAsync("/");
             await Client.PostAsync("/", null);
@@ -215,34 +259,33 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task LogWithLogLevelSelector()
         {
-            PrepareTestServer("${level:uppercase=true}", app =>
-            {
-                app.Use(async (context, next) =>
+            PrepareTestServer(
+                "${level:uppercase=true}",
+                null,
+                app =>
                 {
-                    try
+                    app.Use(async (context, next) =>
                     {
-                        await next(context);
-                    }
-                    catch (Exception)
+                        try
+                        {
+                            await next(context);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    });
+                    app.UseRequestLogging((statusCode) => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
                     {
-                    }
+                        config.MapGet("/", () => Results.Ok());
+                        config.MapPost("/", () => Results.NoContent());
+                        config.MapGet("/bad-request", () => Results.BadRequest());
+                        config.MapGet("/auth", () => Results.Unauthorized());
+                        config.MapGet("/problem", () => Results.Problem());
+                        config.MapGet("/throw", (context) => throw new NotImplementedException());
+                    });
                 });
-                app.UseSimpleRequestLogging(config =>
-                {
-                    config.LogLevelSelector = (statusCode) => (statusCode < 400) ?
-                        LogLevel.Information : LogLevel.Error;
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
-                {
-                    config.MapGet("/", () => Results.Ok());
-                    config.MapPost("/", () => Results.NoContent());
-                    config.MapGet("/bad-request", () => Results.BadRequest());
-                    config.MapGet("/auth", () => Results.Unauthorized());
-                    config.MapGet("/problem", () => Results.Problem());
-                    config.MapGet("/throw", (context) => throw new NotImplementedException());
-                });
-            });
 
             await Client.GetAsync("/");
             await Client.PostAsync("/", null);
@@ -257,30 +300,33 @@ namespace SimpleRequestLogger.Tests
         }
 
         [Test]
-        public async Task LogAndRethrow_OnExceptionDownThePipeline()
+        public async Task LogOnExceptionDownThePipeline()
         {
             var exception = new Exception("Test message");
             Exception? caughtException = null;
-            PrepareTestServer("[${level:uppercase=true}] ${message}", app =>
-            {
-                app.Use(async (context, next) =>
+            PrepareTestServer(
+                "[${level:uppercase=true}] ${message}",
+                null,
+                app =>
                 {
-                    try
+                    app.Use(async (context, next) =>
                     {
-                        await next(context);
-                    }
-                    catch (Exception ex)
+                        try
+                        {
+                            await next(context);
+                        }
+                        catch (Exception ex)
+                        {
+                            caughtException = ex;
+                        }
+                    });
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
                     {
-                        caughtException = ex;
-                    }
+                        config.MapGet("/", (context) => throw exception);
+                    });
                 });
-                app.UseSimpleRequestLogging();
-                app.UseRouting();
-                app.UseEndpoints(config =>
-                {
-                    config.MapGet("/", (context) => throw exception);
-                });
-            });
 
             await Client.GetAsync("/");
 
@@ -291,23 +337,35 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task NotLogIgnoredPaths()
         {
-            PrepareTestServer("${message}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}",
+                new
                 {
-                    config.MessageTemplate = "{Path}";
-                    config.IgnorePath("/ignore");
-                    config.IgnorePath("*/ignore-wildcard-start");
-                    config.IgnorePath("/ignore-wildcard-end*");
-                    config.IgnorePath("*/ignore-wildcard-both-start-and-end*");
-                    config.IgnorePath("/ignore-wildcard*middle");
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Path}",
+                        IgnorePaths = new[]
+                        {
+                            "/ignore",
+                            "*/ignore-wildcard-start",
+                            "/ignore-wildcard-end*",
+                            "*/ignore-wildcard-both-start-and-end*",
+                            "/ignore-wildcard*middle"
+                        }
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () =>
+                        {
+                            return Results.Ok();
+                        });
+                    });
                 });
-            });
 
             await Client.GetAsync("/");
             await Client.GetAsync("/ignore");
@@ -347,6 +405,68 @@ namespace SimpleRequestLogger.Tests
                 "/log/ignore-wildcard/log/middle/log"
             };
             CollectionAssert.AreEqual(expectedPaths, Logs);
+        }
+
+        [Test]
+        public async Task LogWithCustomConfigurationSection()
+        {
+            PrepareTestServer(
+                "[${level:uppercase=true}] ${message}",
+                new
+                {
+                    CustomSection = new
+                    {
+                        CustomRequestLogging = new
+                        {
+                            MessageTemplate = "{Path}",
+                            IgnorePaths = new[] { "/ignore" }
+                        }
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging("CustomSection:CustomRequestLogging");
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () =>
+                        {
+                            return Results.Ok();
+                        });
+                    });
+                });
+
+            await Client.GetAsync("/");
+
+            Assert.AreEqual("[INFO] /", Logs.Single());
+        }
+
+        [Test]
+        public async Task LogAllProperties()
+        {
+            PrepareTestServer(
+                "[${level:uppercase=true}] ${message}",
+                new
+                {
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Method} {Path} {QueryString} {HeaderTest} {Protocol} {Scheme} " +
+                            "{RemoteIpAddress} {ClaimId} {StatusCode} {ElapsedMs}"
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () => Results.Ok());
+                    });
+                });
+
+            await Client.GetAsync("/");
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(Logs.Single()));
         }
     }
 }

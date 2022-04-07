@@ -1,5 +1,8 @@
+using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,18 +16,24 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task Method()
         {
-            PrepareTestServer("${message}|${event-properties:item=Method}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=Method}",
+                new
                 {
-                    config.MessageTemplate = "{Method}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Method}"
+                    }
+                },
+                app =>
                 {
-                    config.MapDelete("/api/endpoint", () => Results.NoContent());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapDelete("/api/endpoint", () => Results.NoContent());
+                    });
                 });
-            });
 
             await Client.DeleteAsync("/api/endpoint");
 
@@ -32,20 +41,26 @@ namespace SimpleRequestLogger.Tests
         }
 
         [Test]
-        public async Task Route()
+        public async Task Path()
         {
-            PrepareTestServer("${message}|${event-properties:item=Path}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=Path}",
+                new
                 {
-                    config.MessageTemplate = "{Path}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Path}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/api/endpoint", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", () => Results.Ok());
+                    });
                 });
-            });
 
             await Client.GetAsync("/api/endpoint");
 
@@ -55,18 +70,24 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task QueryString()
         {
-            PrepareTestServer("${message}|${event-properties:item=QueryString}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=QueryString}",
+                new
                 {
-                    config.MessageTemplate = "{QueryString}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{QueryString}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/api/endpoint", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", () => Results.Ok());
+                    });
                 });
-            });
 
             await Client.GetAsync("/api/endpoint?q=test&t=foo bar");
 
@@ -76,18 +97,24 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task Protocol()
         {
-            PrepareTestServer("${message}|${event-properties:item=Protocol}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=Protocol}",
+                new
                 {
-                    config.MessageTemplate = "{Protocol}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Protocol}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/api/endpoint", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", () => Results.Ok());
+                    });
                 });
-            });
 
             await Client.GetAsync("/api/endpoint");
 
@@ -97,18 +124,24 @@ namespace SimpleRequestLogger.Tests
         [Test]
         public async Task Scheme()
         {
-            PrepareTestServer("${message}|${event-properties:item=Scheme}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=Scheme}",
+                new
                 {
-                    config.MessageTemplate = "{Scheme}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{Scheme}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/api/endpoint", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", () => Results.Ok());
+                    });
                 });
-            });
 
             await Client.GetAsync("/api/endpoint");
 
@@ -116,84 +149,168 @@ namespace SimpleRequestLogger.Tests
         }
 
         [Test]
-        public async Task UserAgent()
+        public async Task Header()
         {
-            PrepareTestServer("${message}|${event-properties:item=UserAgent}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=HeaderUserAgent}",
+                new
                 {
-                    config.MessageTemplate = "{UserAgent}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{HeaderUserAgent}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/api/endpoint", () => Results.Ok());
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", () => Results.Ok());
+                    });
                 });
-            });
-
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/endpoint");
-            request.Headers.Add("User-Agent", "Test User Agent");
+            request.Headers.Add("user-agent", "Test User Agent");
+
             await Client.SendAsync(request);
 
             Assert.AreEqual("Test User Agent|Test User Agent", Logs.Single());
         }
 
         [Test]
+        public async Task RemoteIpAddress()
+        {
+            var remoteIpAddress = Random.Shared.Next();
+            PrepareTestServer(
+                "${message}|${event-properties:item=RemoteIpAddress}",
+                new
+                {
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{RemoteIpAddress}"
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", (HttpContext context) =>
+                        {
+                            context.Connection.RemoteIpAddress = new IPAddress(remoteIpAddress);
+
+                            return Results.Ok();
+                        });
+                    });
+                });
+
+            await Client.GetAsync("/api/endpoint");
+            await Client.GetAsync("/api/endpoint");
+
+            var logValues = Logs[0].Split('|');
+            Assert.AreEqual(2, logValues.Length);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(logValues[0]));
+            Assert.AreEqual(logValues[0], logValues[1]);
+            Assert.AreEqual(logValues[0], Logs[1].Split('|')[0]);
+        }
+
+        [Test]
+        public async Task Claim()
+        {
+            PrepareTestServer(
+                "${message}|${event-properties:item=ClaimUserId}",
+                new
+                {
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{ClaimUserId}"
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/api/endpoint", (HttpContext context) =>
+                        {
+                            var claims = new Claim[] { new("user-id", "testClaimUserId") };
+                            context.User.AddIdentity(new ClaimsIdentity(claims));
+
+                            return Results.Ok();
+                        });
+                    });
+                });
+
+            await Client.GetAsync("/api/endpoint");
+
+            Assert.AreEqual("testClaimUserId|testClaimUserId", Logs.Single());
+        }
+
+        [Test]
         public async Task StatusCode()
         {
-            var expectedStatusCode = StatusCodes.Status418ImATeapot;
-            PrepareTestServer("${message}|${event-properties:item=StatusCode}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            PrepareTestServer(
+                "${message}|${event-properties:item=StatusCode}",
+                new
                 {
-                    config.MessageTemplate = "{StatusCode}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
+                    RequestLogging = new
+                    {
+                        MessageTemplate = "{StatusCode}"
+                    }
+                },
+                app =>
                 {
-                    config.MapGet("/", () => Results.StatusCode(expectedStatusCode));
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () => Results.StatusCode(StatusCodes.Status418ImATeapot));
+                    });
                 });
-            });
 
             await Client.GetAsync("/");
 
-            var logValues = Logs.Single().Split('|');
-            Assert.AreEqual(2, logValues.Length);
-            Assert.AreEqual(logValues[0], logValues[1]);
-            var statusCode = int.Parse(logValues[0]);
-            Assert.AreEqual(expectedStatusCode, statusCode);
+            Assert.AreEqual("418|418", Logs.Single());
         }
 
         [Test]
         public async Task ElapsedMs()
         {
-            var timeAtEndpoint = 200;
-            PrepareTestServer("${message}|${event-properties:item=ElapsedMs}", app =>
-            {
-                app.UseSimpleRequestLogging(config =>
+            var timeAtEndpoint = 1000;
+            PrepareTestServer(
+                "${message}|${event-properties:item=ElapsedMs}",
+                new
                 {
-                    config.MessageTemplate = "{ElapsedMs}";
-                });
-                app.UseRouting();
-                app.UseEndpoints(config =>
-                {
-                    config.MapGet("/", () =>
+                    RequestLogging = new
                     {
-                        Thread.Sleep(timeAtEndpoint);
+                        MessageTemplate = "{ElapsedMs}"
+                    }
+                },
+                app =>
+                {
+                    app.UseRequestLogging();
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () =>
+                        {
+                            Thread.Sleep(timeAtEndpoint);
 
-                        return Results.Ok();
+                            return Results.Ok();
+                        });
                     });
                 });
-            });
 
             await Client.GetAsync("/");
 
             var logValues = Logs.Single().Split('|');
             Assert.AreEqual(2, logValues.Length);
             Assert.AreEqual(logValues[0], logValues[1]);
-            var elapsedMs = double.Parse(logValues[0]);
+            var elapsedMs = long.Parse(logValues[0]);
             var delta = elapsedMs - timeAtEndpoint;
-            Assert.IsTrue(delta >= 0 && delta < 30);
+            Assert.IsTrue(delta >= 0 && delta < 100);
         }
     }
 }
