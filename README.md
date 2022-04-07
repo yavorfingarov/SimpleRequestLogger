@@ -47,17 +47,32 @@ app.UseSimpleRequestLogging();
 
 ### Custom configuration
 
-It is possible to customize the message template, to change the log level based on status code and to disable logging for specific paths.
+It is possible to customize the message template, to change the log level based on status code and to disable logging for specific paths. `SimpleRequestLogger` uses `Microsoft.Extensions.Configuration` and would by default expect a section named `RequestLogging`. 
+
+```json
+"RequestLogging": {
+    "MessageTemplate": "{Scheme} {Method} {Path} => {StatusCode}",
+    "IgnorePaths": [ "/health", "/static/*" ]
+}
+```
+
+It is also possible to pass a custom configuration section: 
 
 ```csharp
-app.UseSimpleRequestLogging(config =>
-{
-    config.MessageTemplate = "{Scheme} {Method} {Path} => {StatusCode}";
-    config.LogLevelSelector = (statusCode) => 
-        (statusCode < 400) ? LogLevel.Information : LogLevel.Error;
-    config.IgnorePath("/health");
-    config.IgnorePath("/static/*");
-});
+app.UseSimpleRequestLogging("YourCustomSection:CustomSubsectionRequestLoging");
+```
+
+To change the log level based on status code, you should pass a delegate to the middleware:
+
+```csharp
+app.UseSimpleRequestLogging(statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
+```
+
+You might as well have both custom configuration section and a log level selector.
+
+```csharp
+app.UseSimpleRequestLogging("YourCustomSection:CustomSubsectionRequestLoging", 
+    statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
 ```
 
 #### Properties
@@ -65,9 +80,11 @@ app.UseSimpleRequestLogging(config =>
 - Method
 - Path
 - QueryString
+- Header* - A Pascal case field name will be transformed to Kebab case. Example: HeaderFooBar => foo-bar
 - Protocol
 - Scheme
-- UserAgent
+- RemoteIpAddress - If you log this property you might want to consider adding `UseForwardedHeaders()` to your pipeline.
+- Claim* - A Pascal case claim type will be transformed to Kebab case. Example: ClaimFooBar => foo-bar
 - StatusCode
 - ElapsedMs
 
@@ -93,7 +110,7 @@ The scenarios are run on a test host without other middleware.
 
 |                       Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
 |----------------------------- |---------:|---------:|---------:|-------:|----------:|
-|        NoSimpleRequestLogger | 12.01 μs | 0.197 μs | 0.175 μs | 2.3804 |      7 KB |
-|                DefaultConfig | 15.93 μs | 0.317 μs | 0.530 μs | 2.5024 |      8 KB |
-|   CustomConfigOneIgnoredPath | 16.46 μs | 0.309 μs | 0.624 μs | 2.5024 |      8 KB |
-| CustomConfigFiveIgnoredPaths | 20.09 μs | 0.389 μs | 0.558 μs | 2.5330 |      8 KB |
+|        NoSimpleRequestLogger | 12.15 μs | 0.235 μs | 0.231 μs | 2.3804 |      7 KB |
+|                DefaultConfig | 15.08 μs | 0.298 μs | 0.522 μs | 2.5024 |      8 KB |
+|   CustomConfigOneIgnoredPath | 17.59 μs | 0.342 μs | 0.336 μs | 2.5024 |      8 KB |
+| CustomConfigFiveIgnoredPaths | 21.35 μs | 0.426 μs | 0.650 μs | 2.5024 |      8 KB |

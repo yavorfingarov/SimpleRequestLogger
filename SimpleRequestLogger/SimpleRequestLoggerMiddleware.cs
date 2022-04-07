@@ -1,46 +1,63 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace SimpleRequestLogger
 {
     internal sealed class SimpleRequestLoggerMiddleware
     {
-        private readonly LoggerConfiguration _Configuration;
+        private static readonly Regex _InvalidMessageTemplateRegex = new Regex(
+            @"(\{[^\}]*\{)|(\}[^\{]*\})|((?<=\{)[a-zA-Z]*[^a-zA-Z\{\}]+[a-zA-Z]*(?=\}))|(\{\})");
 
-        private readonly RequestDelegate _Next;
+        private static readonly Regex _MessageTemplatePropertiesRegex = new Regex(@"((?<=\{)[a-zA-Z]+(?=\}))");
+
+        private readonly string _MessageTemplate;
+
+        private readonly Func<int, LogLevel> _LogLevelSelector;
+
+        private readonly string[] _IgnorePatterns;
+
+        private readonly string[] _PropertyNames;
 
         private readonly ILogger _Logger;
 
-        private readonly IReadOnlyCollection<string> _PropertyNames;
+        private readonly RequestDelegate _Next;
 
-        public SimpleRequestLoggerMiddleware(LoggerConfiguration configuration,
-            ILoggerFactory loggerFactory, RequestDelegate next)
+        public SimpleRequestLoggerMiddleware(
+            string configurationSection,
+            Func<int, LogLevel> logLevelSelector,
+            string defaultMessageTemplate,
+            IConfiguration configuration,
+            ILoggerFactory loggerFactory,
+            RequestDelegate next)
         {
-            _Configuration = configuration;
+            _MessageTemplate = configuration[$"{configurationSection}:MessageTemplate"] ?? defaultMessageTemplate;
+            _LogLevelSelector = logLevelSelector;
+            var ignorePaths = configuration.GetSection($"{configurationSection}:IgnorePaths").Get<string[]>() ?? Array.Empty<string>();
+            _IgnorePatterns = ignorePaths.Distinct()
+                .Select(path => $"^{Regex.Escape(path).Replace("\\*", ".*")}$")
+                .ToArray();
+            _PropertyNames = _MessageTemplatePropertiesRegex.Matches(_MessageTemplate).Select(m => m.Value).ToArray();
+            ValidateConfiguration();
             _Logger = loggerFactory.CreateLogger(nameof(SimpleRequestLogger));
             _Next = next;
-            _PropertyNames = Regex.Matches(_Configuration.MessageTemplate, @"((?<=\{)[a-zA-Z]+(?=\}))")
-                .Select(m => m.Value)
-                .ToList();
-            _ = MapProperties(new LoggingContext());
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            if (_Configuration.IgnorePathPatterns.Any(p => Regex.IsMatch(httpContext.Request.Path, p)))
+            if (_IgnorePatterns.Any(pattern => Regex.IsMatch(httpContext.Request.Path, pattern)))
             {
                 await _Next(httpContext);
 
                 return;
             }
             var start = Stopwatch.GetTimestamp();
-            var statusCode = 0;
+            var statusCode = StatusCodes.Status200OK;
             try
             {
                 await _Next(httpContext);
@@ -55,19 +72,48 @@ namespace SimpleRequestLogger
             finally
             {
                 var elapsedMs = (int)Math.Round((Stopwatch.GetTimestamp() - start) * 1000 / (double)Stopwatch.Frequency);
-                var logLevel = _Configuration.LogLevelSelector(statusCode);
+                var logLevel = _LogLevelSelector(statusCode);
                 var loggingContext = new LoggingContext(httpContext, statusCode, elapsedMs);
 #pragma warning disable CA2254 // Template should be a static expression.
-                _Logger.Log(logLevel, _Configuration.MessageTemplate, MapProperties(loggingContext));
+                _Logger.Log(logLevel, _MessageTemplate, MapProperties(loggingContext));
 #pragma warning restore CA2254 // Template should be a static expression.
             }
         }
 
         private object?[] MapProperties(LoggingContext loggingContext)
         {
-            var properties = _PropertyNames.Select(pn => loggingContext.GetValue(pn));
+            return _PropertyNames.Select(propertyName => loggingContext.GetValue(propertyName)).ToArray();
+        }
 
-            return properties.ToArray();
+        private void ValidateConfiguration()
+        {
+            if (string.IsNullOrWhiteSpace(_MessageTemplate) ||
+                _InvalidMessageTemplateRegex.IsMatch(_MessageTemplate))
+            {
+                throw new InvalidOperationException("Message template is invalid.");
+            }
+
+            var statusCodes = typeof(StatusCodes).GetFields()
+                .Select(fi => (int)fi.GetValue(null)!)
+                .Distinct();
+            foreach (var statusCode in statusCodes)
+            {
+                try
+                {
+                    _ = _LogLevelSelector(statusCode);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Log level selector throws an exception on status code {statusCode}.", ex);
+                }
+            }
+
+            if (_IgnorePatterns.Any(path => Regex.Unescape(path).Replace(" ", "") == "^$"))
+            {
+                throw new InvalidOperationException("Ignore path cannot be null or empty.");
+            }
+
+            _ = MapProperties(new LoggingContext());
         }
     }
 }
