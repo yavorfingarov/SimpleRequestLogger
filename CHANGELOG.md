@@ -1,9 +1,13 @@
 # Changelog
 
+## [2.0.1] - 2022-04-19
+### Fixed
+- Documentation errors
+
 ## [2.0.0] - 2022-04-07
-## Added
+### Added
 - More logging properties
-## Changed
+### Changed
 - All public method signatures (BREAKING)
 - Configuration to use Microsoft.Extensions.Configuration
 
