@@ -42,7 +42,7 @@ The only thing you should do is simply add the middleware to the request pipelin
 By default, `SimpleRequestLogger` logs all requests at information log level with message template `"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms."`. To use the middleware you should only add a single line:
 
 ```csharp
-app.UseSimpleRequestLogging();
+app.UseRequestLogging();
 ```
 
 ### Custom configuration
@@ -59,19 +59,19 @@ It is possible to customize the message template, to change the log level based 
 It is also possible to pass a custom configuration section: 
 
 ```csharp
-app.UseSimpleRequestLogging("YourCustomSection:CustomSubsectionRequestLoging");
+app.UseRequestLogging("YourCustomSection:CustomSubsectionRequestLoging");
 ```
 
 To change the log level based on status code, you should pass a delegate to the middleware:
 
 ```csharp
-app.UseSimpleRequestLogging(statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
+app.UseRequestLogging(statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
 ```
 
 You might as well have both custom configuration section and a log level selector.
 
 ```csharp
-app.UseSimpleRequestLogging("YourCustomSection:CustomSubsectionRequestLoging", 
+app.UseRequestLogging("YourCustomSection:CustomSubsectionRequestLoging", 
     statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
 ```
 
@@ -90,7 +90,7 @@ app.UseSimpleRequestLogging("YourCustomSection:CustomSubsectionRequestLoging",
 
 ### Pipeline placement
 
-You might want to consider placing `SimpleRequestLogger` after request-heavy middlewares like `UseStaticFiles()` if those requests are not interesting for you (alternatively, you might ignore those via the configuration).
+You might want to consider placing `SimpleRequestLogger` after request-heavy middleware like `UseStaticFiles()` if those requests are not interesting for you (alternatively, you might ignore those via the configuration).
 
 If `SimpleRequestLogger` catches an exception, the request will be logged with a status code 500 and the exception will be rethrown. If you have an error handling middleware that alters the response status code based on exception type, you should consider adding `SimpleRequestLogger` before it. 
 
