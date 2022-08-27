@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  DOTNET_VERSION: 6.0.x
+
 jobs:
   build:
     name: Build
@@ -14,13 +17,29 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Restore dependencies
         run: dotnet restore
+      - name: Analyze code
+        run: dotnet format --no-restore --verify-no-changes --severity info
       - name: Build
         run: dotnet build --no-restore
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal
-      # TODO Uncomment once https://github.com/dotnet/format/issues/1519 is fixed.
-      # - name: Check style
-      #   run: dotnet format --no-restore --verify-no-changes --severity info
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Generate code coverage report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/**/coverage.cobertura.xml
+          badge: false
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: '60 80'
+      - name: Add coverage comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md

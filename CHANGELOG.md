@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.2] - 2022-08-27
+### Fixed
+- Documentation errors
+
 ## [2.0.1] - 2022-04-19
 ### Fixed
 - Documentation errors

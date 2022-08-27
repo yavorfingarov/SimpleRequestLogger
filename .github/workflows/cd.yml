@@ -5,6 +5,9 @@ on:
     branches: [ master ]
     paths: [ 'SimpleRequestLogger/**' ]
 
+env:
+  DOTNET_VERSION: 6.0.x
+
 jobs:
   publish:
     name: Publish
@@ -15,12 +18,12 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Restore dependencies
         run: dotnet restore SimpleRequestLogger
       - name: Build
         run: dotnet build --no-restore --configuration Release SimpleRequestLogger
       - name: Create package
         run: dotnet pack --no-build --configuration Release SimpleRequestLogger
-      - name: Publish to NuGet Gallery
+      - name: Publish to NuGet gallery
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
