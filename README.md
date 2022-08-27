@@ -128,3 +128,8 @@ The scenarios are run on a test host without other middleware.
 |                DefaultConfig | 15.08 μs | 0.298 μs | 0.522 μs | 2.5024 |      8 KB |
 |   CustomConfigOneIgnoredPath | 17.59 μs | 0.342 μs | 0.336 μs | 2.5024 |      8 KB |
 | CustomConfigFiveIgnoredPaths | 21.35 μs | 0.426 μs | 0.650 μs | 2.5024 |      8 KB |
+
+## Support
+
+If you spot any problems and/or have improvement ideas, please share them via
+the [issue tracker](https://github.com/yavorfingarov/SimpleRequestLogger/issues).
