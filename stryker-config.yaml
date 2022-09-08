@@ -1,0 +1,3 @@
+stryker-config:
+  test-projects: [ 'SimpleRequestLogger.Tests\SimpleRequestLogger.Tests.csproj' ]
+  reporters: [ 'html', 'dots' ]
