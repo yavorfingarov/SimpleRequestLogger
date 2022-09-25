@@ -364,7 +364,7 @@ namespace SimpleRequestLogger.Tests
                     {
                         config.MapGet("/{a?}/{b?}/{c?}/{d?}/{e?}", () =>
                         {
-                            return Results.Ok();
+                            return Results.Accepted();
                         });
                     });
                 });
@@ -396,7 +396,7 @@ namespace SimpleRequestLogger.Tests
             };
 
             Assert.AreEqual(22, statusCodes.Count);
-            Assert.True(statusCodes.All(s => s == HttpStatusCode.OK));
+            Assert.True(statusCodes.All(s => s == HttpStatusCode.Accepted));
             var expectedPaths = new[]
             {
                 "/",
