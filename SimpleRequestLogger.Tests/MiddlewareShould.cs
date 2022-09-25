@@ -395,6 +395,7 @@ namespace SimpleRequestLogger.Tests
                 await GetStatusCodeAsync("/ignore-wildcardmiddle")
             };
 
+            Assert.AreEqual(22, statusCodes.Count);
             Assert.True(statusCodes.All(s => s == HttpStatusCode.OK));
             var expectedPaths = new[]
             {
@@ -435,7 +436,7 @@ namespace SimpleRequestLogger.Tests
                     app.UseRouting();
                     app.UseEndpoints(config =>
                     {
-                        config.MapGet("/", () =>
+                        config.MapGet("/{a?}", () =>
                         {
                             return Results.Ok();
                         });
@@ -443,7 +444,9 @@ namespace SimpleRequestLogger.Tests
                 });
 
             await Client.GetAsync("/");
+            var response = await Client.GetAsync("/ignore");
 
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("[INFO] /", Logs.Single());
         }
 
