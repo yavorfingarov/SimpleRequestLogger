@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -360,36 +362,41 @@ namespace SimpleRequestLogger.Tests
                     app.UseRouting();
                     app.UseEndpoints(config =>
                     {
-                        config.MapGet("/", () =>
+                        config.MapGet("/{a?}/{b?}/{c?}/{d?}/{e?}", () =>
                         {
-                            return Results.Ok();
+                            return Results.Accepted();
                         });
                     });
                 });
 
-            await Client.GetAsync("/");
-            await Client.GetAsync("/ignore");
-            await Client.GetAsync("/log/ignore");
-            await Client.GetAsync("/ignore/log");
-            await Client.GetAsync("/log/ignore/log");
-            await Client.GetAsync("/ignore-wildcard-start");
-            await Client.GetAsync("/log/ignore-wildcard-start");
-            await Client.GetAsync("/ignore-wildcard-start/log");
-            await Client.GetAsync("/log/ignore-wildcard-start/log");
-            await Client.GetAsync("/ignore-wildcard-end");
-            await Client.GetAsync("/log/ignore-wildcard-end");
-            await Client.GetAsync("/ignore-wildcard-end/log");
-            await Client.GetAsync("/log/ignore-wildcard-end/log");
-            await Client.GetAsync("/ignore-wildcard-both-start-and-end");
-            await Client.GetAsync("/log/ignore-wildcard-both-start-and-end");
-            await Client.GetAsync("/ignore-wildcard-both-start-and-end/log");
-            await Client.GetAsync("/log/ignore-wildcard-both-start-and-end/log");
-            await Client.GetAsync("/ignore-wildcard/log/middle");
-            await Client.GetAsync("/ignore-wildcard/log/middle/log");
-            await Client.GetAsync("/log/ignore-wildcard/log/middle");
-            await Client.GetAsync("/log/ignore-wildcard/log/middle/log");
-            await Client.GetAsync("/ignore-wildcardmiddle");
+            var statusCodes = new List<HttpStatusCode>
+            {
+                await GetStatusCodeAsync("/"),
+                await GetStatusCodeAsync("/ignore"),
+                await GetStatusCodeAsync("/log/ignore"),
+                await GetStatusCodeAsync("/ignore/log"),
+                await GetStatusCodeAsync("/log/ignore/log"),
+                await GetStatusCodeAsync("/ignore-wildcard-start"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-start"),
+                await GetStatusCodeAsync("/ignore-wildcard-start/log"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-start/log"),
+                await GetStatusCodeAsync("/ignore-wildcard-end"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-end"),
+                await GetStatusCodeAsync("/ignore-wildcard-end/log"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-end/log"),
+                await GetStatusCodeAsync("/ignore-wildcard-both-start-and-end"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-both-start-and-end"),
+                await GetStatusCodeAsync("/ignore-wildcard-both-start-and-end/log"),
+                await GetStatusCodeAsync("/log/ignore-wildcard-both-start-and-end/log"),
+                await GetStatusCodeAsync("/ignore-wildcard/log/middle"),
+                await GetStatusCodeAsync("/ignore-wildcard/log/middle/log"),
+                await GetStatusCodeAsync("/log/ignore-wildcard/log/middle"),
+                await GetStatusCodeAsync("/log/ignore-wildcard/log/middle/log"),
+                await GetStatusCodeAsync("/ignore-wildcardmiddle")
+            };
 
+            Assert.AreEqual(22, statusCodes.Count);
+            Assert.True(statusCodes.All(s => s == HttpStatusCode.Accepted));
             var expectedPaths = new[]
             {
                 "/",
@@ -429,7 +436,7 @@ namespace SimpleRequestLogger.Tests
                     app.UseRouting();
                     app.UseEndpoints(config =>
                     {
-                        config.MapGet("/", () =>
+                        config.MapGet("/{a?}", () =>
                         {
                             return Results.Ok();
                         });
@@ -437,8 +444,65 @@ namespace SimpleRequestLogger.Tests
                 });
 
             await Client.GetAsync("/");
+            var response = await Client.GetAsync("/ignore");
 
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("[INFO] /", Logs.Single());
+        }
+
+        [Test]
+        public async Task LogWithCustomConfigurationSectionAndLogLevelSelector()
+        {
+            PrepareTestServer(
+                "${level:uppercase=true}",
+                new
+                {
+                    CustomSection = new
+                    {
+                        CustomRequestLogging = new
+                        {
+                            MessageTemplate = "{Path}",
+                            IgnorePaths = new[] { "/ignore" }
+                        }
+                    }
+                },
+                app =>
+                {
+                    app.Use(async (context, next) =>
+                    {
+                        try
+                        {
+                            await next(context);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    });
+                    app.UseRequestLogging("CustomSection:CustomRequestLogging",
+                        (statusCode) => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
+                    app.UseRouting();
+                    app.UseEndpoints(config =>
+                    {
+                        config.MapGet("/", () => Results.Ok());
+                        config.MapPost("/", () => Results.NoContent());
+                        config.MapGet("/bad-request", () => Results.BadRequest());
+                        config.MapGet("/auth", () => Results.Unauthorized());
+                        config.MapGet("/problem", () => Results.Problem());
+                        config.MapGet("/throw", (context) => throw new NotImplementedException());
+                    });
+                });
+
+            await Client.GetAsync("/");
+            await Client.PostAsync("/", null);
+            await Client.GetAsync("/bad-request");
+            await Client.GetAsync("/auth");
+            await Client.GetAsync("/not-found?q=foo");
+            await Client.PatchAsync("/auth", null);
+            await Client.GetAsync("/problem");
+            await Client.GetAsync("/ignore");
+            await Client.GetAsync("/throw");
+
+            CollectionAssert.AreEqual(new[] { "INFO", "INFO", "ERROR", "ERROR", "ERROR", "ERROR", "ERROR", "ERROR" }, Logs);
         }
 
         [Test]
@@ -467,6 +531,13 @@ namespace SimpleRequestLogger.Tests
             await Client.GetAsync("/");
 
             Assert.IsFalse(string.IsNullOrWhiteSpace(Logs.Single()));
+        }
+
+        private async Task<HttpStatusCode> GetStatusCodeAsync(string path)
+        {
+            var response = await Client.GetAsync(path);
+
+            return response.StatusCode;
         }
     }
 }

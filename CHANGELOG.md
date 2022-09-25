@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.3] - 2022-09-25
+### Changed
+- Dependencies update
+
 ## [2.0.2] - 2022-08-27
 ### Fixed
 - Documentation errors
