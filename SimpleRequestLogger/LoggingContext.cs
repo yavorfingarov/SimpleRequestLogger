@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace SimpleRequestLogger
 {
-    internal struct LoggingContext
+    internal readonly struct LoggingContext
     {
-        private static readonly Regex _KebabCaseRegex = new Regex(@"[A-Z]", RegexOptions.Compiled);
+        private static readonly Regex _KebabCaseRegex = new(@"[A-Z]", RegexOptions.Compiled);
 
         private readonly HttpContext? _HttpContext;
 
