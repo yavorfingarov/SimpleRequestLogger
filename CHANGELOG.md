@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.0] - 2022-11-18
+### Changed
+- Framework targets to .NET 6 and 7
+- Minor readme improvements
+
 ## [2.0.3] - 2022-09-25
 ### Changed
 - Dependencies update

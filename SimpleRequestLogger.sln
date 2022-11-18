@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleRequestLogger", "Simp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleRequestLogger.Tests", "SimpleRequestLogger.Tests\SimpleRequestLogger.Tests.csproj", "{9B9BC845-039D-441E-91A2-DE16091D904E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleRequestLogger.Benchmarks", "SimpleRequestLogger.Benchmarks\SimpleRequestLogger.Benchmarks.csproj", "{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{9B9BC845-039D-441E-91A2-DE16091D904E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B9BC845-039D-441E-91A2-DE16091D904E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B9BC845-039D-441E-91A2-DE16091D904E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C9F0574E-B843-4996-8FF3-0C62FCDFC5C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
