@@ -11,10 +11,10 @@ namespace SimpleRequestLogger
 {
     internal sealed class SimpleRequestLoggerMiddleware
     {
-        private static readonly Regex _InvalidMessageTemplateRegex = new Regex(
+        private static readonly Regex _InvalidMessageTemplateRegex = new(
             @"(\{[^\}]*\{)|(\}[^\{]*\})|((?<=\{)[a-zA-Z]*[^a-zA-Z\{\}]+[a-zA-Z]*(?=\}))|(\{\})");
 
-        private static readonly Regex _MessageTemplatePropertiesRegex = new Regex(@"((?<=\{)[a-zA-Z]+(?=\}))");
+        private static readonly Regex _MessageTemplatePropertiesRegex = new(@"((?<=\{)[a-zA-Z]+(?=\}))");
 
         private readonly string _MessageTemplate;
 
@@ -82,7 +82,7 @@ namespace SimpleRequestLogger
 
         private object?[] MapProperties(LoggingContext loggingContext)
         {
-            return _PropertyNames.Select(propertyName => loggingContext.GetValue(propertyName)).ToArray();
+            return _PropertyNames.Select(loggingContext.GetValue).ToArray();
         }
 
         private void ValidateConfiguration()

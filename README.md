@@ -24,34 +24,19 @@ you need in a single log entry:
 }
 ```
 
-## Installation
+## Getting started
 
-You can install the [NuGet package](https://www.nuget.org/packages/SimpleRequestLogger) via 
-the NuGet Package Manager inside Visual Studio or via the console:
-
-```
-// Package Manager Console
-Install-Package SimpleRequestLogger
-
-// .NET Core CLI
-dotnet add package SimpleRequestLogger
-```
-
-## Usage
-
-The only thing you should do is simply add the middleware to the request pipeline.
-
-### Default configuration
-
-By default, SimpleRequestLogger logs all requests at information log level with message 
-template `"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms."`. 
-To use the middleware you should only add a single line:
+Install the [NuGet package](https://www.nuget.org/packages/SimpleRequestLogger) and 
+add the middleware at the beginning of your request pipeline:
 
 ```csharp
 app.UseRequestLogging();
 ```
 
-### Custom configuration
+## Configuration
+
+By default, SimpleRequestLogger logs all requests at information log level with message 
+template `"{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms."`. 
 
 It is possible to customize the message template, to change the log level based on 
 status code and to disable logging for specific paths. SimpleRequestLogger uses 
@@ -83,7 +68,7 @@ app.UseRequestLogging("YourCustomSection:CustomSubsectionRequestLoging",
     statusCode => (statusCode < 400) ? LogLevel.Information : LogLevel.Error);
 ```
 
-#### Properties
+### Properties
 
 - Method
 - Path
@@ -96,7 +81,7 @@ app.UseRequestLogging("YourCustomSection:CustomSubsectionRequestLoging",
 - StatusCode
 - ElapsedMs
 
-### Pipeline placement
+## Pipeline placement
 
 You might want to consider placing SimpleRequestLogger after request-heavy middleware like `UseStaticFiles()` 
 if those requests are not interesting for you (alternatively, you might ignore those via the configuration).
@@ -105,29 +90,12 @@ If SimpleRequestLogger catches an exception, the request will be logged with a s
 and the exception will be rethrown. If you have an error handling middleware that alters the response 
 status code based on exception type, you should consider adding SimpleRequestLogger before it. 
 
-### Exceptions
-
-In normal circumstances, SimpleRequestLogger should not throw exceptions when handling requests. 
+## Self checks
 
 On startup, when the middleware is instantiated, the configuration is verified. `MessageTemplate` 
 and `IgnorePaths` are checked for validity. Additionally, it is also ensured that the log level selector 
 delegate will not throw for the standard response status codes. In case of a problem with the configuration, 
 an `InvalidOperationException` is thrown.
-
-## Performance
-
-SimpleRequestLogger adds a negligible performance overhead to every request. 
-
-### Benchmarks
-
-The scenarios are run on a test host without other middleware.
-
-|                       Method |     Mean |    Error |   StdDev |  Gen 0 | Allocated |
-|----------------------------- |---------:|---------:|---------:|-------:|----------:|
-|        NoSimpleRequestLogger | 12.15 μs | 0.235 μs | 0.231 μs | 2.3804 |      7 KB |
-|                DefaultConfig | 15.08 μs | 0.298 μs | 0.522 μs | 2.5024 |      8 KB |
-|   CustomConfigOneIgnoredPath | 17.59 μs | 0.342 μs | 0.336 μs | 2.5024 |      8 KB |
-| CustomConfigFiveIgnoredPaths | 21.35 μs | 0.426 μs | 0.650 μs | 2.5024 |      8 KB |
 
 ## Support
 
