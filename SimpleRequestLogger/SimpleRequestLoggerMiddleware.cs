@@ -24,6 +24,8 @@ namespace SimpleRequestLogger
 
         private readonly string[] _PropertyNames;
 
+        private readonly Stopwatch _Stopwatch;
+
         private readonly ILogger _Logger;
 
         private readonly RequestDelegate _Next;
@@ -44,6 +46,7 @@ namespace SimpleRequestLogger
                 .ToArray();
             _PropertyNames = _MessageTemplatePropertiesRegex.Matches(_MessageTemplate).Select(m => m.Value).ToArray();
             ValidateConfiguration();
+            _Stopwatch = new Stopwatch();
             _Logger = loggerFactory.CreateLogger(nameof(SimpleRequestLogger));
             _Next = next;
         }
@@ -56,7 +59,7 @@ namespace SimpleRequestLogger
 
                 return;
             }
-            var start = Stopwatch.GetTimestamp();
+            _Stopwatch.Restart();
             var statusCode = StatusCodes.Status200OK;
             try
             {
@@ -71,9 +74,9 @@ namespace SimpleRequestLogger
             }
             finally
             {
-                var elapsedMs = (int)Math.Round((Stopwatch.GetTimestamp() - start) * 1000 / (double)Stopwatch.Frequency);
                 var logLevel = _LogLevelSelector(statusCode);
-                var loggingContext = new LoggingContext(httpContext, statusCode, elapsedMs);
+                _Stopwatch.Stop();
+                var loggingContext = new LoggingContext(httpContext, statusCode, _Stopwatch.ElapsedMilliseconds);
 #pragma warning disable CA2254 // Template should be a static expression.
                 _Logger.Log(logLevel, _MessageTemplate, MapProperties(loggingContext));
 #pragma warning restore CA2254 // Template should be a static expression.

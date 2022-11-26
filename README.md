@@ -7,12 +7,12 @@ you need in a single log entry:
 
 ```
 // Plaintext
-[21:51:46.5705 INFO] GET / responded 200 in 31 ms.
+21:51:46.5705 [INF] GET / responded 200 in 31 ms.
 
 // JSON
 {
     "Time": "21:51:46.5705",
-    "Level": "INFO",
+    "Level": "INF",
     "Message": "GET / responded 200 in 31 ms.",
     "Properties": {
         "Method": "GET",
@@ -90,7 +90,7 @@ If SimpleRequestLogger catches an exception, the request will be logged with a s
 and the exception will be rethrown. If you have an error handling middleware that alters the response 
 status code based on exception type, you should consider adding SimpleRequestLogger before it. 
 
-## Self checks
+## Self-checks
 
 On startup, when the middleware is instantiated, the configuration is verified. `MessageTemplate` 
 and `IgnorePaths` are checked for validity. Additionally, it is also ensured that the log level selector 

@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.1.0] - 2022-11-26
+### Added
+- NuGet package icon
+
 ## [3.0.0] - 2022-11-18
 ### Changed
 - Framework targets to .NET 6 and 7
