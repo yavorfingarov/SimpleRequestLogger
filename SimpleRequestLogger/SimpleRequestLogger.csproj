@@ -5,18 +5,24 @@
     <Nullable>enable</Nullable>
     <WarningsAsErrors>Nullable</WarningsAsErrors>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <AnalysisLevel>7.0-recommended</AnalysisLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Authors>Yavor Fingarov</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/yavorfingarov/SimpleRequestLogger</PackageProjectUrl>
     <PackageTags>logging; logger; structured; semantic; request; response; middleware; diagnostics; aspnetcore; microsoft.extensions.logging</PackageTags>
-    <Version>3.0.0</Version>
+    <Version>3.1.0</Version>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>A simple and customizable ASP.NET Core middleware for structured logging of requests using Microsoft.Extensions.Logging.</Description>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Description>A simple and customizable ASP.NET Core middleware for structured logging of requests.</Description>
+    <PackageReleaseNotes>https://github.com/yavorfingarov/SimpleRequestLogger/blob/master/CHANGELOG.md</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

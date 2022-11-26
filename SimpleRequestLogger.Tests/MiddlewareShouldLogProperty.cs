@@ -304,8 +304,15 @@ namespace SimpleRequestLogger.Tests
                 });
 
             await Client.GetAsync("/");
+            await Client.GetAsync("/");
 
-            var logValues = Logs.Single().Split('|');
+            Assert.AreEqual(2, Logs.Count);
+            AssertElapsedMs(Logs.First().Split('|'), timeAtEndpoint);
+            AssertElapsedMs(Logs.Last().Split('|'), timeAtEndpoint);
+        }
+
+        private static void AssertElapsedMs(string[] logValues, int timeAtEndpoint)
+        {
             Assert.AreEqual(2, logValues.Length);
             Assert.AreEqual(logValues[0], logValues[1]);
             var elapsedMs = long.Parse(logValues[0]);
