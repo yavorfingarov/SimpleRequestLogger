@@ -1,13 +1,6 @@
-using System;
-using System.Linq;
+using System.Globalization;
 using System.Net;
-using System.Net.Http;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using NUnit.Framework;
 
 namespace SimpleRequestLogger.Tests
 {
@@ -315,7 +308,7 @@ namespace SimpleRequestLogger.Tests
         {
             Assert.AreEqual(2, logValues.Length);
             Assert.AreEqual(logValues[0], logValues[1]);
-            var elapsedMs = long.Parse(logValues[0]);
+            var elapsedMs = long.Parse(logValues[0], CultureInfo.InvariantCulture);
             var delta = elapsedMs - timeAtEndpoint;
             Assert.IsTrue(delta >= 0 && delta < 100);
         }

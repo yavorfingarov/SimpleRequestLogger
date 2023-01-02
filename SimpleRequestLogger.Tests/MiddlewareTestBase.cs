@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
-using NUnit.Framework;
 
 namespace SimpleRequestLogger.Tests
 {
     public abstract class MiddlewareTestBase
     {
-        protected IList<string> Logs => _MemoryTarget.Logs;
+        public IList<string> Logs => _MemoryTarget.Logs;
 
-        protected HttpClient Client = null!;
+        public HttpClient Client { get; private set; } = null!;
 
         private MemoryTarget _MemoryTarget = null!;
 
@@ -31,6 +24,7 @@ namespace SimpleRequestLogger.Tests
         [TearDown]
         public void Teardown()
         {
+            _MemoryTarget.Dispose();
             _Host?.Dispose();
         }
 

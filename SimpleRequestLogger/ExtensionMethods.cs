@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Builder;
 
 namespace SimpleRequestLogger
 {

@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.1.1] - 2021-01-02
+### Fixed
+- Culture for string operations
+
 ## [3.1.0] - 2022-11-26
 ### Added
 - NuGet package icon
