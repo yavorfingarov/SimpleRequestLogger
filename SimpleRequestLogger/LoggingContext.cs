@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Http;
+﻿using System.Globalization;
 
 namespace SimpleRequestLogger
 {
@@ -26,12 +23,12 @@ namespace SimpleRequestLogger
         internal object? GetValue(string propertyName)
         {
             object? propertyValue;
-            if (propertyName.StartsWith("Header") && propertyName.Length > 6)
+            if (propertyName.StartsWith("Header", StringComparison.InvariantCulture) && propertyName.Length > 6)
             {
                 var fieldName = GetKebabCase(propertyName[6..]);
                 propertyValue = _HttpContext?.Request.Headers[fieldName].ToString();
             }
-            else if (propertyName.StartsWith("Claim") && propertyName.Length > 5)
+            else if (propertyName.StartsWith("Claim", StringComparison.InvariantCulture) && propertyName.Length > 5)
             {
                 var claimType = GetKebabCase(propertyName[5..]);
                 propertyValue = _HttpContext?.User.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
@@ -57,7 +54,7 @@ namespace SimpleRequestLogger
 
         private static string GetKebabCase(string input)
         {
-            return _KebabCaseRegex.Replace(input, "-$0").TrimStart('-').ToLower();
+            return _KebabCaseRegex.Replace(input, "-$0").TrimStart('-').ToLower(CultureInfo.InvariantCulture);
         }
     }
 }

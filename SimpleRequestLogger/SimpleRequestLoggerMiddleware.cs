@@ -1,11 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
 
 namespace SimpleRequestLogger
 {
@@ -77,9 +70,7 @@ namespace SimpleRequestLogger
                 var logLevel = _LogLevelSelector(statusCode);
                 _Stopwatch.Stop();
                 var loggingContext = new LoggingContext(httpContext, statusCode, _Stopwatch.ElapsedMilliseconds);
-#pragma warning disable CA2254 // Template should be a static expression.
                 _Logger.Log(logLevel, _MessageTemplate, MapProperties(loggingContext));
-#pragma warning restore CA2254 // Template should be a static expression.
             }
         }
 
