@@ -40,7 +40,9 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run unit tests
-        run: dotnet test --no-build --configuration Release --logger html --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
+        run: >
+          dotnet test --no-build --configuration Release 
+          --logger html --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
 
       - name: Upload test results
         if: ${{ failure() }}
@@ -108,10 +110,10 @@ jobs:
           }
           lines_of_code=$(cat ./TestCoverageReport/Summary.csv | grep -Po '(?<=Total lines:;)[0-9]+')
           set_lines_of_code "$lines_of_code"
-          test_coverage=$(cat ./TestCoverageReport/Summary.csv | grep -Po '(?<=Line coverage:;)[0-9]{1,2}')
+          test_coverage=$(cat ./TestCoverageReport/Summary.csv | grep -Po '(?<=Line coverage:;)[0-9]+')
           set_output "test_coverage" "Test coverage" "$test_coverage" "%"
           mutation_report_path=$(find ./StrykerOutput -name mutation-report.md)
-          mutation_score=$(cat $mutation_report_path | grep -Po '(?<=## The final mutation score is )[0-9]{1,2}')
+          mutation_score=$(cat $mutation_report_path | grep -Po '(?<=## The final mutation score is )[0-9]+')
           set_output "mutation_score" "Mutation score" "$mutation_score" "%"
           check_coverage "$test_coverage" "$mutation_score"
         working-directory: ${{ env.UNIT_TESTS_PATH }}
@@ -162,4 +164,6 @@ jobs:
 
       - name: Publish to NuGet gallery
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
-        run: dotnet nuget push ${{ env.SRC_PATH }}/**/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push ${{ env.SRC_PATH }}/**/*.nupkg 
+          --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
