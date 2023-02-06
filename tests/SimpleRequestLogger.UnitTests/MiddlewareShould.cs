@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace SimpleRequestLogger.Tests
+namespace SimpleRequestLogger.UnitTests
 {
     public class MiddlewareShould : MiddlewareTestBase
     {

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Security.Claims;
 
-namespace SimpleRequestLogger.Tests
+namespace SimpleRequestLogger.UnitTests
 {
     public class MiddlewareShouldLogProperty : MiddlewareTestBase
     {

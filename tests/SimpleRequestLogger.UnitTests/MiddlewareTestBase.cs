@@ -9,7 +9,7 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 
-namespace SimpleRequestLogger.Tests
+namespace SimpleRequestLogger.UnitTests
 {
     public abstract class MiddlewareTestBase
     {

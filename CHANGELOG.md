@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.2.0] - 2023-02-06
+### Added
+- SourceLink
+- Deterministic build
+
 ## [3.1.1] - 2021-01-02
 ### Fixed
 - Culture for string operations

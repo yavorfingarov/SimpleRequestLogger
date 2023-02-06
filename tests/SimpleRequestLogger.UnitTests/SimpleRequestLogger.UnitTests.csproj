@@ -21,26 +21,22 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.13" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.2" />
+  </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\SimpleRequestLogger\SimpleRequestLogger.csproj" />
+    <ProjectReference Include="..\..\src\SimpleRequestLogger\SimpleRequestLogger.csproj" />
   </ItemGroup>
   
   <ItemGroup>
     <Content Include="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.AspNetCore.TestHost">
-      <Version>6.0.13</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.AspNetCore.TestHost">
-      <Version>7.0.2</Version>
-    </PackageReference>
   </ItemGroup>
 
 </Project>
