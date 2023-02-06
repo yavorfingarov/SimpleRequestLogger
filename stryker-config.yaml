@@ -1,4 +1,0 @@
-stryker-config:
-  target-framework: 'net7.0'
-  test-projects: [ 'SimpleRequestLogger.Tests/SimpleRequestLogger.Tests.csproj' ]
-  reporters: [ 'html', 'dots' ]

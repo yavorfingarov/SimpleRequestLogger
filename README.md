@@ -1,6 +1,14 @@
 # SimpleRequestLogger
 
-This package provides a small and customizable ASP.NET Core middleware for structured logging 
+[![nuget](https://img.shields.io/nuget/v/SimpleRequestLogger)](https://www.nuget.org/packages/SimpleRequestLogger)
+[![downloads](https://img.shields.io/nuget/dt/SimpleRequestLogger?color=blue)](https://www.nuget.org/stats/packages/SimpleRequestLogger?groupby=Version)
+[![build](https://img.shields.io/github/actions/workflow/status/yavorfingarov/SimpleRequestLogger/cd.yml?branch=master)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
+[![codeql](https://img.shields.io/github/actions/workflow/status/yavorfingarov/SimpleRequestLogger/codeql.yml?branch=master&label=codeql)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/codeql.yml?query=branch%3Amaster)
+[![loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yavorfingarov/ee725e01afca4342ff8ea785553d05d2/raw/lines-of-code.json)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
+[![test coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yavorfingarov/ee725e01afca4342ff8ea785553d05d2/raw/test-coverage.json)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
+[![mutation score](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yavorfingarov/ee725e01afca4342ff8ea785553d05d2/raw/mutation-score.json)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
+
+SimpleRequestLogger is a small and customizable ASP.NET Core middleware for structured logging 
 of requests using `Microsoft.Extensions.Logging`. The built-in request logging is a bit noisy 
 and emits multiple events per request. With SimpleRequestLogger you can fit all the information 
 you need in a single log entry:
@@ -97,7 +105,13 @@ and `IgnorePaths` are checked for validity. Additionally, it is also ensured tha
 delegate will not throw for the standard response status codes. In case of a problem with the configuration, 
 an `InvalidOperationException` is thrown.
 
-## Support
+## Additional resources
 
-If you spot any problems and/or have improvement ideas, please share them via
-the [issue tracker](https://github.com/yavorfingarov/SimpleRequestLogger/issues).
+* [Changelog](https://github.com/yavorfingarov/SimpleRequestLogger/blob/master/CHANGELOG.md)
+
+* [License](https://github.com/yavorfingarov/SimpleRequestLogger/blob/master/LICENSE)
+
+## Help and support
+
+For bug reports and feature requests, please use the [issue tracker](https://github.com/yavorfingarov/SimpleRequestLogger/issues).
+For questions, ideas and other topics, please check the [discussions](https://github.com/yavorfingarov/SimpleRequestLogger/discussions).

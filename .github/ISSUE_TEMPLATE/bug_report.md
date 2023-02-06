@@ -16,10 +16,10 @@ A clear and concise description of what led to the problem.
 A clear and concise description of what you expected to happen.
 
 **Package version**
-E.g. 2.0.2
+E.g. 3.2.0
 
 **.NET version**
-E.g. 6.0.8
+E.g. 7.0.2
 
 **Third-party logging framework**
 E.g. NLog
