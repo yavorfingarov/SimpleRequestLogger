@@ -164,7 +164,7 @@ jobs:
 
       - name: Create package
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
-        run: dotnet pack --no-build --configuration Release ${{ env.CSPROJ_PATH }} --output ./packages
+        run: dotnet pack --no-build --configuration Release --output ./packages ${{ env.CSPROJ_PATH }}
 
       - name: Upload build artifact
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
