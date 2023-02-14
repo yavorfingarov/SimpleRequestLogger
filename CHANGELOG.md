@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.2.1] - 2023-02-14
+### Fixed
+- Removed unneeded dependency
+
 ## [3.2.0] - 2023-02-06
 ### Added
 - SourceLink

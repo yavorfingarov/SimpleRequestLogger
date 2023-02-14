@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/yavorfingarov/SimpleRequestLogger</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yavorfingarov/SimpleRequestLogger.git</RepositoryUrl>
     <PackageTags>logging; logger; structured; semantic; request; response; middleware; diagnostics; aspnetcore; microsoft.extensions.logging</PackageTags>
-    <Version>3.2.0</Version>
+    <Version>3.2.1</Version>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A simple and customizable ASP.NET Core middleware for structured logging of requests.</Description>
@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.4.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

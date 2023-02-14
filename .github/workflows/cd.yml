@@ -8,7 +8,6 @@ on:
 
 env:
   DOTNET_VERSION: 7.0.x
-  SRC_PATH: ./src
   CSPROJ_PATH: ./src/SimpleRequestLogger/SimpleRequestLogger.csproj
   UNIT_TESTS_PATH: ./tests/SimpleRequestLogger.UnitTests
   MIN_COVERAGE: 90
@@ -18,7 +17,12 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    outputs:
+      should-publish: ${{ steps.changed-src.outputs.changed }}
     steps:
+
+      - name: Get timestamp
+        run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
 
       - name: Check out repository
         uses: actions/checkout@v3
@@ -48,13 +52,13 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: TestResults
+          name: TestResults-${{ env.TIMESTAMP }}
           path: |
             '**/TestResults'
             '**/*.received.*'
 
       - name: Generate test coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.16
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.17
         with:
           reports: '${{ env.UNIT_TESTS_PATH }}/coverage/**/coverage.cobertura.xml'
           targetdir: '${{ env.UNIT_TESTS_PATH }}/TestCoverageReport'
@@ -65,13 +69,13 @@ jobs:
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Run mutation tests
-        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --reporter "html" --reporter "markdown"
+        run: ./tools/dotnet-stryker --config-file stryker-config.yaml
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
-          name: CoverageReport
+          name: CoverageReport-${{ env.TIMESTAMP }}
           path: |
             ${{ env.UNIT_TESTS_PATH }}/TestCoverageReport/
             ${{ env.UNIT_TESTS_PATH }}/StrykerOutput/
@@ -151,19 +155,41 @@ jobs:
           message: ${{ steps.analyze-coverage-report.outputs.mutation_score }}
           color: brightgreen
 
-      - name: Check publish conditions
+      - name: Check src/ for changes
         if: ${{ github.event_name == 'push' }}
         id: changed-src
         uses: marceloprado/has-changed-path@v1.0.1
         with:
-          paths: ${{ env.SRC_PATH }}
+          paths: ./src
 
       - name: Create package
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
         run: dotnet pack --no-build --configuration Release ${{ env.CSPROJ_PATH }}
 
-      - name: Publish to NuGet gallery
+      - name: Upload build artifact
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: packages
+          path: |
+            '**/src/**/*.nupkg'
+            '**/src/**/*.snupkg'
+          retention-days: 1
+
+  publish:
+    name: Publish
+    needs: build
+    if: ${{ needs.build.outputs.should-publish == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: packages
+          path: ./packages
+
+      - name: Publish to NuGet gallery
         run: >
-          dotnet nuget push ${{ env.SRC_PATH }}/**/*.nupkg 
+          dotnet nuget push ./packages/*.nupkg 
           --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
