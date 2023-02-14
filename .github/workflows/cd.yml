@@ -45,7 +45,7 @@ jobs:
 
       - name: Run unit tests
         run: >
-          dotnet test --no-build --configuration Release 
+          dotnet test --no-build --configuration Release
           --logger html --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
 
       - name: Upload test results
@@ -164,16 +164,14 @@ jobs:
 
       - name: Create package
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
-        run: dotnet pack --no-build --configuration Release ${{ env.CSPROJ_PATH }}
+        run: dotnet pack --no-build --configuration Release --output ./packages ${{ env.CSPROJ_PATH }}
 
       - name: Upload build artifact
         if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
         uses: actions/upload-artifact@v3
         with:
           name: packages
-          path: |
-            '**/src/**/*.nupkg'
-            '**/src/**/*.snupkg'
+          path: packages/
           retention-days: 1
 
   publish:
@@ -187,9 +185,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: packages
-          path: ./packages
+          path: packages/
 
       - name: Publish to NuGet gallery
         run: >
-          dotnet nuget push ./packages/*.nupkg 
+          dotnet nuget push ./packages/*.nupkg
           --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
