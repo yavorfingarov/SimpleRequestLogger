@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.2.2] - 2023-02-15
+### Fixed
+- Wording in the readme
+
 ## [3.2.1] - 2023-02-14
 ### Fixed
 - Removed unneeded dependency

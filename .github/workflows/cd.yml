@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  DOTNET_VERSION: 7.0.x
+  DOTNET_VERSION: 7.0.102
   CSPROJ_PATH: ./src/SimpleRequestLogger/SimpleRequestLogger.csproj
   UNIT_TESTS_PATH: ./tests/SimpleRequestLogger.UnitTests
   MIN_COVERAGE: 90
@@ -45,8 +45,8 @@ jobs:
 
       - name: Run unit tests
         run: >
-          dotnet test --no-build --configuration Release
-          --logger html --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
+          dotnet test --no-build --configuration Release --logger html
+          --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
 
       - name: Upload test results
         if: ${{ failure() }}
@@ -191,3 +191,9 @@ jobs:
         run: >
           dotnet nuget push ./packages/*.nupkg
           --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+
+      - name: Delete build artifact
+        if: ${{ always() }}
+        uses: geekyeggo/delete-artifact@v2
+        with:
+            name: packages

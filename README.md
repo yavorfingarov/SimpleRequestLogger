@@ -2,7 +2,7 @@
 
 [![nuget](https://img.shields.io/nuget/v/SimpleRequestLogger)](https://www.nuget.org/packages/SimpleRequestLogger)
 [![downloads](https://img.shields.io/nuget/dt/SimpleRequestLogger?color=blue)](https://www.nuget.org/stats/packages/SimpleRequestLogger?groupby=Version)
-[![build](https://img.shields.io/github/actions/workflow/status/yavorfingarov/SimpleRequestLogger/cd.yml?branch=master)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
+[![cd](https://img.shields.io/github/actions/workflow/status/yavorfingarov/SimpleRequestLogger/cd.yml?branch=master&label=cd)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
 [![codeql](https://img.shields.io/github/actions/workflow/status/yavorfingarov/SimpleRequestLogger/codeql.yml?branch=master&label=codeql)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/codeql.yml?query=branch%3Amaster)
 [![loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yavorfingarov/ee725e01afca4342ff8ea785553d05d2/raw/lines-of-code.json)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
 [![test coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yavorfingarov/ee725e01afca4342ff8ea785553d05d2/raw/test-coverage.json)](https://github.com/yavorfingarov/SimpleRequestLogger/actions/workflows/cd.yml?query=branch%3Amaster)
@@ -92,7 +92,7 @@ app.UseRequestLogging("YourCustomSection:CustomSubsectionRequestLoging",
 ## Pipeline placement
 
 You might want to consider placing SimpleRequestLogger after request-heavy middleware like `UseStaticFiles()`
-if those requests are not interesting for you (alternatively, you might ignore those via the configuration).
+if those requests are not interesting for you. Alternatively, you might ignore those via the configuration.
 
 If SimpleRequestLogger catches an exception, the request will be logged with a status code 500
 and the exception will be rethrown. If you have an error handling middleware that alters the response
