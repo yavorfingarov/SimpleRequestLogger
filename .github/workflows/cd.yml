@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  DOTNET_VERSION: 7.0.102
+  DOTNET_VERSION: 7.0.x
   CSPROJ_PATH: ./src/SimpleRequestLogger/SimpleRequestLogger.csproj
   UNIT_TESTS_PATH: ./tests/SimpleRequestLogger.UnitTests
   MIN_COVERAGE: 90
@@ -22,7 +22,8 @@ jobs:
     steps:
 
       - name: Get timestamp
-        run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
+        id: get-timestamp
+        run: echo "timestamp=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
       - name: Check out repository
         uses: actions/checkout@v3
@@ -37,28 +38,31 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
+      - name: Analyze code
+        run: dotnet format --no-restore --verify-no-changes --severity info
+
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
       - name: Run unit tests
         run: >
           dotnet test --no-build --configuration Release --logger html
-          --collect:"XPlat Code Coverage" --results-directory ${{ env.UNIT_TESTS_PATH }}/coverage
+          --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
       - name: Upload test results
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: TestResults-${{ env.TIMESTAMP }}
+          name: TestResults-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            '**/TestResults'
+            './TestResults/*.html'
             '**/*.received.*'
 
       - name: Generate test coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.1.17
         with:
-          reports: '${{ env.UNIT_TESTS_PATH }}/coverage/**/coverage.cobertura.xml'
-          targetdir: '${{ env.UNIT_TESTS_PATH }}/TestCoverageReport'
+          reports: './TestResults/**/coverage.cobertura.xml'
+          targetdir: './TestCoverageReport'
           reporttypes: 'Html;CsvSummary'
 
       - name: Set up Stryker
@@ -66,16 +70,16 @@ jobs:
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Run mutation tests
-        run: ./tools/dotnet-stryker --config-file stryker-config.yaml
+        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --output ${{ github.workspace }}
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
-          name: CoverageReport-${{ env.TIMESTAMP }}
+          name: CoverageReport-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            ${{ env.UNIT_TESTS_PATH }}/TestCoverageReport/
-            ${{ env.UNIT_TESTS_PATH }}/StrykerOutput/
+            ./TestCoverageReport/
+            ./StrykerOutput/
 
       - name: Analyze coverage report
         id: analyze-coverage-report
@@ -117,7 +121,6 @@ jobs:
           mutation_score=$(cat $mutation_report_path | grep -Po '(?<=## The final mutation score is )[0-9]+')
           set_output "mutation_score" "Mutation score" "$mutation_score" "%"
           check_coverage "$test_coverage" "$mutation_score"
-        working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Update lines of code gist
         if: ${{ github.event_name == 'push' }}
