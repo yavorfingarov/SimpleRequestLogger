@@ -32,11 +32,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SimpleRequestLogger\SimpleRequestLogger.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <Content Include="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
 </Project>
