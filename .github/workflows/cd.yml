@@ -52,7 +52,7 @@ jobs:
         with:
           name: TestResults-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            'TestResults/*.html'
+            '**/TestResults/*.html'
             '**/*.received.*'
 
       - name: Generate test coverage report
