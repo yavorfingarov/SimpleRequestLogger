@@ -52,7 +52,7 @@ jobs:
         with:
           name: TestResults-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            '**/TestResults/*.html'
+            '~/TestResults/*.html'
             '**/*.received.*'
 
       - name: Generate test coverage report
@@ -67,7 +67,7 @@ jobs:
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Run mutation tests
-        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --output ${{ github.workspace }}
+        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --output ~
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Upload coverage report
@@ -75,8 +75,8 @@ jobs:
         with:
           name: CoverageReport-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            ./TestCoverageReport/
-            ./StrykerOutput/
+            '~/TestCoverageReport/'
+            '~/StrykerOutput/'
 
       - name: Analyze coverage report
         id: analyze-coverage-report
