@@ -43,8 +43,13 @@ jobs:
 
       - name: Run unit tests
         run: >
-          dotnet test --no-build --configuration Release --logger html
+          dotnet test --no-build --configuration Release --filter UnitTests --logger html
           --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Run integration tests
+        run: >
+          dotnet test --no-build --configuration Release --filter IntegrationTests --logger html
+          --results-directory ./TestResults
 
       - name: Upload test results
         if: ${{ failure() }}
@@ -52,11 +57,11 @@ jobs:
         with:
           name: TestResults-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            TestResults/*.html
+            ./TestResults/*.html
             **/*.received.*
 
       - name: Generate test coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.17
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.19
         with:
           reports: './TestResults/**/coverage.cobertura.xml'
           targetdir: './TestCoverageReport'
@@ -75,8 +80,8 @@ jobs:
         with:
           name: CoverageReport-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
-            '~/TestCoverageReport/'
-            '~/StrykerOutput/'
+            ./TestCoverageReport/
+            ./StrykerOutput/
 
       - name: Analyze coverage report
         id: analyze-coverage-report
@@ -120,7 +125,7 @@ jobs:
           check_coverage "$test_coverage" "$mutation_score"
 
       - name: Update lines of code gist
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref_name == 'master' }}
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
@@ -131,7 +136,7 @@ jobs:
           color: blue
 
       - name: Update test coverage gist
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref_name == 'master' }}
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
@@ -142,7 +147,7 @@ jobs:
           color: brightgreen
 
       - name: Update mutation score gist
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref_name == 'master' }}
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
@@ -153,18 +158,18 @@ jobs:
           color: brightgreen
 
       - name: Check src/ for changes
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref_name == 'master' }}
         id: changed-src
         uses: marceloprado/has-changed-path@v1.0.1
         with:
           paths: ./src
 
       - name: Create package
-        if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
+        if: ${{ github.ref_name == 'master' && steps.changed-src.outputs.changed == 'true' }}
         run: dotnet pack --no-build --configuration Release --output ./packages ${{ env.CSPROJ_PATH }}
 
       - name: Upload build artifact
-        if: ${{ github.event_name == 'push' && steps.changed-src.outputs.changed == 'true' }}
+        if: ${{ github.ref_name == 'master' && steps.changed-src.outputs.changed == 'true' }}
         uses: actions/upload-artifact@v3
         with:
           name: packages
