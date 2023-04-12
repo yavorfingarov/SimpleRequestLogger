@@ -72,7 +72,7 @@ jobs:
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Run mutation tests
-        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --output ${{ github.workspace }}
+        run: ./tools/dotnet-stryker --config-file stryker-config.yaml --output ${{ github.workspace }}/StrykerReport
         working-directory: ${{ env.UNIT_TESTS_PATH }}
 
       - name: Upload coverage report
@@ -81,7 +81,7 @@ jobs:
           name: CoverageReport-${{ steps.get-timestamp.outputs.timestamp }}
           path: |
             ./TestCoverageReport/
-            ./StrykerOutput/
+            ./StrykerReport/
 
       - name: Analyze coverage report
         id: analyze-coverage-report
@@ -119,7 +119,7 @@ jobs:
           set_lines_of_code "$lines_of_code"
           test_coverage=$(cat ./TestCoverageReport/Summary.csv | grep -Po '(?<=Line coverage:;)[0-9]+')
           set_output "test_coverage" "Test coverage" "$test_coverage" "%"
-          mutation_report_path=$(find ./StrykerOutput -name mutation-report.md)
+          mutation_report_path=$(find ./StrykerReport -name mutation-report.md)
           mutation_score=$(cat $mutation_report_path | grep -Po '(?<=## The final mutation score is )[0-9]+')
           set_output "mutation_score" "Mutation score" "$mutation_score" "%"
           check_coverage "$test_coverage" "$mutation_score"
