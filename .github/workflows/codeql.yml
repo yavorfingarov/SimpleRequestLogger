@@ -1,16 +1,13 @@
 name: CodeQL
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
   schedule:
     - cron: 0 3 * * 1
-  workflow_dispatch:
-
-env:
-  DOTNET_VERSION: 7.0.x
 
 jobs:
   analyze:
@@ -18,5 +15,3 @@ jobs:
     permissions:
       security-events: write
     uses: yavorfingarov/Workflows/.github/workflows/codeql.yml@master
-    with:
-      dotnet-version: ${{ env.DOTNET_VERSION }}

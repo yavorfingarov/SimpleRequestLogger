@@ -1,21 +1,17 @@
 name: CD
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  workflow_dispatch:
-
-env:
-  DOTNET_VERSION: 7.0.x
 
 jobs:
   build:
     name: Build
     uses: yavorfingarov/Workflows/.github/workflows/build.yml@master
     with:
-      dotnet-version: ${{ env.DOTNET_VERSION }}
       unit-tests-path: ./tests/SimpleRequestLogger.UnitTests
       status-gist-id: ee725e01afca4342ff8ea785553d05d2
     secrets: inherit
@@ -26,6 +22,5 @@ jobs:
     if: ${{ needs.build.outputs.run-next == 'true' }}
     uses: yavorfingarov/Workflows/.github/workflows/publish-nuget.yml@master
     with:
-      dotnet-version: ${{ env.DOTNET_VERSION }}
       csproj-path: ./src/SimpleRequestLogger/SimpleRequestLogger.csproj
     secrets: inherit
