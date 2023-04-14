@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.2.3] - 2023-04-14
+### Fixed
+- Minor performance issues
+
 ## [3.2.2] - 2023-02-15
 ### Fixed
 - Wording in the readme

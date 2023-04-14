@@ -7,11 +7,11 @@ namespace SimpleRequestLogger
     /// </summary>
     public static class ExtensionMethods
     {
-        private static readonly string _DefaultConfigurationSection = "RequestLogging";
+        private const string _DefaultConfigurationSection = "RequestLogging";
+
+        private const string _DefaultMessageTemplate = "{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms.";
 
         private static readonly Func<int, LogLevel> _DefaultLogLevelSelector = (statusCode) => LogLevel.Information;
-
-        private static readonly string _DefaultMessageTemplate = "{Method} {Path}{QueryString} responded {StatusCode} in {ElapsedMs} ms.";
 
         /// <summary>
         /// Adds SimpleRequestLogger middleware to the pipeline.
