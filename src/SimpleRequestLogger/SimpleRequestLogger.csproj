@@ -1,19 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Authors>Yavor Fingarov</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/yavorfingarov/SimpleRequestLogger</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yavorfingarov/SimpleRequestLogger.git</RepositoryUrl>
     <PackageTags>logging; logger; structured; semantic; request; response; middleware; diagnostics; aspnetcore; microsoft.extensions.logging</PackageTags>
-    <Version>3.2.2</Version>
+    <Version>3.2.3</Version>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A simple and customizable ASP.NET Core middleware for structured logging of requests.</Description>

@@ -1,14 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace SimpleRequestLogger
 {
     internal sealed class SimpleRequestLoggerMiddleware
     {
-        private static readonly Regex _InvalidMessageTemplateRegex = new(
-            @"(\{[^\}]*\{)|(\}[^\{]*\})|((?<=\{)[a-zA-Z]*[^a-zA-Z\{\}]+[a-zA-Z]*(?=\}))|(\{\})");
-
-        private static readonly Regex _MessageTemplatePropertiesRegex = new(@"((?<=\{)[a-zA-Z]+(?=\}))");
-
         private readonly string _MessageTemplate;
 
         private readonly Func<int, LogLevel> _LogLevelSelector;
@@ -37,7 +33,12 @@ namespace SimpleRequestLogger
             _IgnorePatterns = ignorePaths.Distinct()
                 .Select(path => $"^{Regex.Escape(path).Replace("\\*", ".*")}$")
                 .ToArray();
-            _PropertyNames = _MessageTemplatePropertiesRegex.Matches(_MessageTemplate).Select(m => m.Value).ToArray();
+            _PropertyNames = Regex.Matches(_MessageTemplate, @"((?<=\{)[a-zA-Z]+(?=\}))").Select(m => m.Value).ToArray();
+            foreach (var propertyName in _PropertyNames)
+            {
+                TryAddToPropertyNameMap("Header", propertyName);
+                TryAddToPropertyNameMap("Claim", propertyName);
+            }
             ValidateConfiguration();
             _Stopwatch = new Stopwatch();
             _Logger = loggerFactory.CreateLogger(nameof(SimpleRequestLogger));
@@ -74,15 +75,10 @@ namespace SimpleRequestLogger
             }
         }
 
-        private object?[] MapProperties(LoggingContext loggingContext)
-        {
-            return _PropertyNames.Select(loggingContext.GetValue).ToArray();
-        }
-
         private void ValidateConfiguration()
         {
             if (string.IsNullOrWhiteSpace(_MessageTemplate) ||
-                _InvalidMessageTemplateRegex.IsMatch(_MessageTemplate))
+                Regex.IsMatch(_MessageTemplate, @"(\{[^\}]*\{)|(\}[^\{]*\})|((?<=\{)[a-zA-Z]*[^a-zA-Z\{\}]+[a-zA-Z]*(?=\}))|(\{\})"))
             {
                 throw new InvalidOperationException("Message template is invalid.");
             }
@@ -108,6 +104,20 @@ namespace SimpleRequestLogger
             }
 
             _ = MapProperties(new LoggingContext());
+        }
+
+        private object?[] MapProperties(LoggingContext loggingContext)
+        {
+            return _PropertyNames.Select(loggingContext.GetValue).ToArray();
+        }
+
+        private static void TryAddToPropertyNameMap(string prefix, string propertyName)
+        {
+            if (propertyName.StartsWith(prefix, StringComparison.InvariantCulture) && propertyName.Length > prefix.Length)
+            {
+                LoggingContext._PropertyNameMap[propertyName] = Regex.Replace(propertyName, @"[A-Z]", "-$0")[(prefix.Length + 2)..]
+                    .ToLower(CultureInfo.InvariantCulture);
+            }
         }
     }
 }

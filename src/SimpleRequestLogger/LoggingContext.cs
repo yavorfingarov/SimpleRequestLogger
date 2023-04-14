@@ -1,10 +1,8 @@
-﻿using System.Globalization;
-
-namespace SimpleRequestLogger
+﻿namespace SimpleRequestLogger
 {
     internal readonly struct LoggingContext
     {
-        private static readonly Regex _KebabCaseRegex = new(@"[A-Z]", RegexOptions.Compiled);
+        internal static readonly Dictionary<string, string> _PropertyNameMap = new();
 
         private readonly HttpContext? _HttpContext;
 
@@ -23,14 +21,12 @@ namespace SimpleRequestLogger
         internal object? GetValue(string propertyName)
         {
             object? propertyValue;
-            if (propertyName.StartsWith("Header", StringComparison.InvariantCulture) && propertyName.Length > 6)
+            if (propertyName.StartsWith("Header", StringComparison.InvariantCulture) && _PropertyNameMap.TryGetValue(propertyName, out var headerKey))
             {
-                var fieldName = GetKebabCase(propertyName[6..]);
-                propertyValue = _HttpContext?.Request.Headers[fieldName].ToString();
+                propertyValue = _HttpContext?.Request.Headers[headerKey].ToString();
             }
-            else if (propertyName.StartsWith("Claim", StringComparison.InvariantCulture) && propertyName.Length > 5)
+            else if (propertyName.StartsWith("Claim", StringComparison.InvariantCulture) && _PropertyNameMap.TryGetValue(propertyName, out var claimType))
             {
-                var claimType = GetKebabCase(propertyName[5..]);
                 propertyValue = _HttpContext?.User.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
             }
             else
@@ -50,11 +46,6 @@ namespace SimpleRequestLogger
             }
 
             return propertyValue;
-        }
-
-        private static string GetKebabCase(string input)
-        {
-            return _KebabCaseRegex.Replace(input, "-$0").TrimStart('-').ToLower(CultureInfo.InvariantCulture);
         }
     }
 }
